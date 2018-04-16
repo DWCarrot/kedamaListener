@@ -1,0 +1,91 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>kmc</groupId>
+  <artifactId>kedamaListener</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <packaging>jar</packaging>
+
+  <name>kedamaListener</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.netty</groupId>
+      <artifactId>netty-all</artifactId>
+      <version>4.1.22.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.code.gson</groupId>
+      <artifactId>gson</artifactId>
+      <version>2.8.2</version>
+    </dependency>
+    <dependency>
+    	<groupId>log4j</groupId>
+    	<artifactId>log4j</artifactId>
+    	<version>1.2.17</version>
+    </dependency>
+  </dependencies>
+  
+  <build>  
+    <plugins>    
+      <plugin>  
+        <groupId>org.apache.maven.plugins</groupId>  
+        <artifactId>maven-jar-plugin</artifactId>  
+        <version>2.4</version>
+        <configuration>
+         <outputDirectory>${project.build.directory}/jar/</outputDirectory> 
+         <archive>  
+           <manifest>  
+             <addClasspath>true</addClasspath>  
+             <classpathPrefix>lib/</classpathPrefix>  
+             <mainClass>kmc.kedamaListener.App</mainClass>  
+           </manifest>  
+         </archive>
+         <excludes>
+           <exclude>junit</exclude>
+         </excludes>  
+       </configuration>  
+     </plugin>  
+     <plugin>  
+       <groupId>org.apache.maven.plugins</groupId>  
+       <artifactId>maven-dependency-plugin</artifactId>  
+       <version>2.8</version>
+       <executions>  
+         <execution>  
+           <id>copy-dependencies</id>  
+           <phase>package</phase>  
+           <goals>  
+             <goal>copy-dependencies</goal>  
+           </goals>  
+           <configuration>  
+             <outputDirectory>${project.build.directory}/jar/lib</outputDirectory>
+             <excludeArtifactIds>junit</excludeArtifactIds> 
+           </configuration>  
+         </execution>  
+       </executions>  
+    </plugin>  
+  </plugins>
+  <resources>
+    <resource>
+      <directory>src/main/java</directory>
+  	  <includes>
+  	    <include>*.properties</include>
+  	    <include>*.json</include>
+  	  </includes>
+    </resource>
+  </resources>
+</build>
+  
+</project>
