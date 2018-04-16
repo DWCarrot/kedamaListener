@@ -16,6 +16,8 @@ logs/
 record/
 
 # Ignoring private files
+src/test/
+package.bat
 settings.json
 *.keystore
 
