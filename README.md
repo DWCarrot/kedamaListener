@@ -12,3 +12,7 @@ ping 方法完成
 基本可以运行
 
 未实现SSL
+
+### 2018/04/16
+
+实现简单的单向认证SSL，使用jre/lib/security/cacerts 作为trustkeystore

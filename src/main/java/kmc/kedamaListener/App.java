@@ -22,7 +22,7 @@ public class App {
 	
 	public static int failTimes;
 	
-	public final static int version = 2;
+	public final static int version = 4;
 	
     public static void main( String[] args ) {
 

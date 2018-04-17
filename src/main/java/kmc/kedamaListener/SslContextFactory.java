@@ -1,7 +1,7 @@
 package kmc.kedamaListener;
 
-import java.io.FileInputStream;
 import java.security.KeyStore;
+import java.security.SecureRandom;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -21,18 +21,21 @@ public class SslContextFactory {
 	        if (algorithm == null)
 	            algorithm = "SunX509";
 	        try {
-	            KeyStore ks2 = KeyStore.getInstance("JKS");
-	            ks2.load(App.class.getResourceAsStream("/" + settings.keystore), settings.keystorepw.toCharArray());
-
-	            KeyStore tks2 = KeyStore.getInstance("JKS");
-	            tks2.load(App.class.getResourceAsStream("/" + settings.trustkeystore), settings.trustkeystorepw.toCharArray());
-	            // Set up key manager factory to use our key store
+	        	if(settings.keystoretype == null || settings.keystoretype.equals("=default"))
+	        		settings.keystoretype = KeyStore.getDefaultType();
+	        	KeyStore ks2 = KeyStore.getInstance(settings.keystoretype);
+		        ks2.load(App.class.getResourceAsStream("/" + settings.keystore), settings.keystorepw.toCharArray());		            
+	        	if(settings.trustkeystoretype == null || settings.trustkeystoretype.equals("=default"))
+	        		settings.trustkeystoretype = KeyStore.getDefaultType();
+	        	KeyStore tks2 = KeyStore.getInstance(settings.trustkeystoretype);
+		        tks2.load(App.class.getResourceAsStream("/" + settings.trustkeystore), settings.trustkeystorepw.toCharArray());
+	        	// Set up key manager factory to use our key store
 	            KeyManagerFactory kmf2 = KeyManagerFactory.getInstance(algorithm);
-	            TrustManagerFactory tmf2 = TrustManagerFactory.getInstance("SunX509");
+	            TrustManagerFactory tmf2 = TrustManagerFactory.getInstance(algorithm);
 	            kmf2.init(ks2, settings.keystorepw.toCharArray());
 	            tmf2.init(tks2);
 	            clientContext = SSLContext.getInstance(PROTOCOL);
-	            clientContext.init(kmf2.getKeyManagers(), tmf2.getTrustManagers(), null);	           
+	            clientContext.init(kmf2.getKeyManagers(), tmf2.getTrustManagers(), new SecureRandom());          
 	        } catch (Exception e) {
 	            App.logger.error("SSLException @" + Thread.currentThread().getName(), e);
 	        }
