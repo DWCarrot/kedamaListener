@@ -1,12 +1,23 @@
 package kmc.kedamaListener;
 
-import java.util.Date;
-
-import org.apache.log4j.Logger;
+import java.lang.reflect.Type;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonPrimitive;
+import com.google.gson.JsonSerializationContext;
+import com.google.gson.JsonSerializer;
 
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import kmc.kedamaListener.ListenerClientStatusManager;
 import kmc.kedamaListener.js.settings.IRCSettings;
 /**
@@ -22,46 +33,77 @@ public class App {
 	
 	public static int failTimes;
 	
-	public final static int version = 4;
+	public final static int version = 7;
+	
+	public static GsonBuilder gsonbuilder;
+	
+	public static ZoneId zone = ZoneId.of("Asia/Shanghai");
+	
+	
+	public static DateTimeFormatter formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+	
+	public static void genGsonBuilder () {
+		gsonbuilder = new GsonBuilder();
+    	gsonbuilder.registerTypeAdapter(LocalDateTime.class, new JsonSerializer<LocalDateTime>() {   		  		
+			@Override			
+			public JsonElement serialize(LocalDateTime src, Type typeOfSrc, JsonSerializationContext context) {				
+				return new JsonPrimitive(ZonedDateTime.of(src, zone).format(formatter));
+			}  		
+    	});
+    	
+    	gsonbuilder.registerTypeAdapter(ZonedDateTime.class, new JsonSerializer<ZonedDateTime>() {
+			@Override
+			public JsonElement serialize(ZonedDateTime src, Type typeOfSrc, JsonSerializationContext context) {
+				return new JsonPrimitive(src.format(formatter));
+			}
+		});
+    	gsonbuilder.registerTypeAdapter(Duration.class, new JsonSerializer<Duration>() {
+			@Override
+			public JsonElement serialize(Duration src, Type typeOfSrc, JsonSerializationContext context) {
+				return new JsonPrimitive(src.toMillis());
+			}
+		});
+    	gsonbuilder.registerTypeAdapter(Instant.class, new JsonSerializer<Instant>() {
+			@Override
+			public JsonElement serialize(Instant src, Type typeOfSrc, JsonSerializationContext context) {
+				return new JsonPrimitive(src.toEpochMilli());
+			}
+		});
+	}
 	
     public static void main( String[] args ) {
 
     	failTimes = 0;
-    	logger = Logger.getLogger(App.class);
-    	logger.info("#start @version: " + version);
-    	Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+    	logger = LoggerFactory.getLogger(App.class);
+    	logger.info("#start @version={}", version);
     	
+    	genGsonBuilder();
+    	
+    	Gson gson = gsonbuilder.create();   	
     	try {   		
         	SettingsManager mgrs = SettingsManager.getSettingsManager("settings.json");
         	ListenerClientStatusManager mgr = ListenerClientStatusManager.getListenerClientStatusManager();      	
         	ListenerClient c = new ListenerClient();
     		SslContextFactory.getClientContext(mgrs.getIrc().host.ssl);
     		
-    		IRCSettings ircs = mgrs.getIrc();
-    		ListenerClientStatus s = mgr.getListenerClientStatus();    		
-    		long tmp = 0;
+    		IRCSettings ircs = mgrs.getIrc();	
     		while(failTimes <= ircs.maxfailtime) {
 				c.settingRecord();
 				c.start();
-				tmp = System.currentTimeMillis();
-				s.restartlistener++;
+				mgr.addClientRestart();
 				if(failTimes < 0)
 					break;
-				if(s.lastfail == null || tmp - s.lastfail.getTime() > (ircs.normalworking + ircs.retryperiod) * 1000L)
+				if(mgr.getRunnningTime() > (ircs.normalworking + ircs.retryperiod) * 1000L)
 					failTimes = 0;
 				else
 					failTimes++;
-				if(s.lastfail == null)
-					s.lastfail = new Date();
-				s.lastfail.setTime(tmp);
-				App.logger.info("#state " + gson.toJson(mgr.getListenerClientStatus()));
+				App.logger.info("#state {}" ,gson.toJson(mgr.getListenerClientStatus()));
 				Thread.sleep(ircs.retryperiod * 1000L);
     		}
 		} catch (Exception e) {
-			logger.error("#Exception @" + Thread.currentThread().getName(), e);
+			logger.error("#Exception @{}" , Thread.currentThread().getName(), e);
 		}
     	logger.info("#end");
-    	
     	
     }
     

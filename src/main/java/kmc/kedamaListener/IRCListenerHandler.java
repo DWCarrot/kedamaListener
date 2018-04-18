@@ -1,6 +1,8 @@
 package kmc.kedamaListener;
 
 import java.lang.Thread.State;
+import java.time.Instant;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
@@ -28,7 +30,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	
 	private char[] pw;
 	
-	private int lineLimit = 250;
+	private int lineLimit = 512;
 	
 	public IRCListenerHandler() {
 		super();
@@ -40,7 +42,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 		plc = rc.getPlayerCount();			
 		replyKey = "@"+ ircsettings.username;
 		mgr = ListenerClientStatusManager.getListenerClientStatusManager();
-		gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+		gson = App.gsonbuilder.create();
 		pw = null;
 	}
 	
@@ -117,14 +119,16 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		ping.close();
-		t.interrupt();
+		if(ping != null)
+			ping.close();
+		if(t != null)
+			t.interrupt();
 		super.channelInactive(ctx);
 	}
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		App.logger.error("#Exception @" + Thread.currentThread().getName(), cause);
+		App.logger.error("#Exception @{}", Thread.currentThread().getName(), cause);
 //		super.exceptionCaught(ctx, cause);
 	}
 	
@@ -135,15 +139,15 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 		case 100:
 			target = msg.middles.get(0);
 		case 0:
-			send.setTime(System.currentTimeMillis())
+			send.setTime(Instant.now())
 				.setCommand("PRIVMSG")
 				.addMiddles(target)
-				.setTrailing(Long.toString(send.getTime()));
+				.setTrailing(send.getTime().toString());
 			break;
 		case 101:
 			target = msg.middles.get(0);
 		case 1:
-			send.setTime(System.currentTimeMillis())
+			send.setTime(Instant.now())
 				.setCommand("PRIVMSG")
 				.addMiddles(target)
 				.setTrailing(gson.toJson(ListenerClientStatusManager.getListenerClientStatusManager().getListenerClientStatus()));
@@ -151,13 +155,13 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 		case 102:
 			target = msg.middles.get(0);
 		case 2:
-			send.setTime(System.currentTimeMillis())
+			send.setTime(Instant.now())
 				.setCommand("PRIVMSG")
 				.addMiddles(target)
 				.setTrailing(gson.toJson(PlayerCountRecord.getPlayerCountRecord().getPlayerCount()));
 			break;	
 		case 5:
-			send.setTime(System.currentTimeMillis())
+			send.setTime(Instant.now())
 				.setCommand("PRIVMSG")
 				.addMiddles(target)
 				.setTrailing(gson.toJson(SysInfo.getSysInfo()));
@@ -165,7 +169,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 		case 27:
 			if(pw == null) {
 				pw = OffPassword.generatePw1();
-				send.setTime(System.currentTimeMillis())
+				send.setTime(Instant.now())
 					.setCommand("PRIVMSG")
 					.addMiddles(target)
 					.setTrailing(new String(pw));
@@ -178,12 +182,12 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 				if(j > i)
 					pwp = msg.getTrailing().substring(i, j);
 				if(pwp != null && pwp.equals(new String(OffPassword.encodePw1(pw)))) {
-					send.setTime(System.currentTimeMillis())
+					send.setTime(Instant.now())
 						.setCommand("QUIT");
 					App.logger.info("## remoted to close ##");
 					App.failTimes = -1;
 				} else {
-					send.setTime(System.currentTimeMillis())
+					send.setTime(Instant.now())
 						.setCommand("PRIVMSG")
 						.addMiddles(target)
 						.setTrailing("Invalid");

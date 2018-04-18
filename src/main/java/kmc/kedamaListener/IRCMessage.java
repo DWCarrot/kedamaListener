@@ -1,12 +1,13 @@
 package kmc.kedamaListener;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class IRCMessage {
 
-	protected long time;
+	protected Instant time;
 	
 //	protected String prefix;
 	
@@ -19,14 +20,14 @@ public class IRCMessage {
 	protected String trailing;
 	
 	static IRCMessage fromString(String msg) throws IOException {
-		return new IRCMessage(System.currentTimeMillis(), msg);
+		return new IRCMessage(Instant.now(), msg);
 	}
 	
 	public IRCMessage() {
 
 	}
 	
-	public IRCMessage(long time, String cmd, String... para) {
+	public IRCMessage(Instant time, String cmd, String... para) {
 		if(command == null && "".equals(command))
 			return;
 		this.time = time;
@@ -42,15 +43,14 @@ public class IRCMessage {
 				break;
 			}
 			middles.add(p);
-		}
-			
+		}			
 	}
 	
-	public IRCMessage(long time, String msg) throws IOException {
+	public IRCMessage(Instant time, String msg) throws IOException {
 		this.time = time;
 		parse(msg);
 	}
-
+	
 	public void parse(String msg) throws IOException {
 		int j = 0, i = 0;
 		if(msg.startsWith("null"))
@@ -87,7 +87,7 @@ public class IRCMessage {
 		return this;
 	}
 
-	public IRCMessage setTime(long time) {
+	public IRCMessage setTime(Instant time) {
 		this.time = time;
 		return this;
 	}
@@ -114,7 +114,7 @@ public class IRCMessage {
 		return this;
 	}
 	
-	public long getTime() {
+	public Instant getTime() {
 		return time;
 	}
 

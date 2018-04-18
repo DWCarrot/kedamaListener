@@ -32,9 +32,19 @@
       <version>2.8.2</version>
     </dependency>
     <dependency>
-    	<groupId>log4j</groupId>
-    	<artifactId>log4j</artifactId>
-    	<version>1.2.17</version>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>1.7.25</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-classic</artifactId>
+      <version>1.2.3</version>
+    </dependency>
+    <dependency>
+      <groupId>ch.qos.logback</groupId>
+      <artifactId>logback-core</artifactId>
+      <version>1.2.3</version>
     </dependency>
   </dependencies>
   
@@ -81,7 +91,7 @@
     <resource>
       <directory>src/main/java</directory>
   	  <includes>
-  	    <include>*.properties</include>
+  	    <include>*.xml</include>
   	    <include>*.json</include>
   	    <include>*.keystore</include>
   	  </includes>

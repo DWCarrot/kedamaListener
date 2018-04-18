@@ -1,5 +1,7 @@
 package kmc.kedamaListener;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -8,26 +10,38 @@ import java.util.TreeSet;
 
 public class PlayerCount {
 	
-	private long timestamp;
+	private Instant timestamp;
+	
+	private ZonedDateTime time;
 	
 	private int onlineNum;
 	
 	private Set<String> online;
 	
 	public PlayerCount() {
-		timestamp = System.currentTimeMillis();
+		timestamp = null;
 		onlineNum = 0;
 		online = new TreeSet<>();
 	}
 
-	public synchronized long getTime() {
+	public synchronized Instant getTimestamp() {
 		return timestamp;
 	}
 
-	public synchronized void setTime(long time) {
-		this.timestamp = time;
+	public synchronized ZonedDateTime getTime() {
+		return time;
+	}
+	
+	public synchronized void setTime(Instant timestamp) {
+		this.timestamp = timestamp;
+		this.time = ZonedDateTime.ofInstant(timestamp, App.zone);
 	}
 
+	public synchronized void setTime(ZonedDateTime time) {
+		this.time = time;
+		this.timestamp = time.toInstant();
+	}
+	
 	public synchronized int getOnlineNum() {
 		return onlineNum;
 	}

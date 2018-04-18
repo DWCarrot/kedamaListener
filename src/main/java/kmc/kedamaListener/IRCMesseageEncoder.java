@@ -4,7 +4,7 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -24,7 +24,7 @@ public class IRCMesseageEncoder extends MessageToMessageEncoder<IRCMessage> {
 	protected void encode(ChannelHandlerContext ctx, IRCMessage msg, List<Object> out) throws Exception {
 		StringBuilder s = msg.asString(null);
 		if(record)
-			logger.info(new StringBuilder().append('[').append(msg.time).append("|<=]").append(s));
+			logger.info("[<=|]{}", s.toString());
 		out.add(ByteBufUtil.encodeString(ctx.alloc(), CharBuffer.wrap(s.append("\r\n").toString()), charset));
 	}
 	

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="false" debug="true">
+	
+	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
+		<Encoding>UTF-8</Encoding>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>[%-5level][%d{yyyy-MM-dd HH:mm:ss.SSS}] %msg%n</pattern>		
+		</layout>
+	</appender>
+	
+	<appender name="fileLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<Encoding>UTF-8</Encoding>
+		<file>logs/main.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>logs/main-%d{yyyy-MM-dd}.log</fileNamePattern>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>[%-5level][%d{yyyy-MM-dd HH:mm:ss.SSS}] %msg%n</pattern>		
+		</layout>
+	</appender>
+	
+	<appender name="csvRecordLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<Encoding>UTF-8</Encoding>
+		<file>csvRecord/record.csv</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>csvRecord/record-%d{yyyy-MM-dd}.csv</fileNamePattern>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>%msg%n</pattern>		
+		</layout>
+	</appender>
+	
+	<appender name="jsonRecordLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<Encoding>UTF-8</Encoding>
+		<file>jsonRecord/record.json</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>jsonRecord/record-%d{yyyy-MM-dd}.json</fileNamePattern>
+		</rollingPolicy>
+		<layout class="ch.qos.logback.classic.PatternLayout">
+			<pattern>%msg,%n</pattern>		
+		</layout>
+	</appender>
+	
+	<logger name="kmc.kedamaListener.RecordInJson" level="INFO" additivity="false">
+		<appender-ref ref="jsonRecordLogAppender"></appender-ref>
+	</logger>
+	
+	<logger name="kmc.kedamaListener.RecordInCSV" level="INFO" additivity="false">
+		<appender-ref ref="csvRecordLogAppender"></appender-ref>
+	</logger>
+	
+	<root level="info">
+		<appender-ref ref="stdout"></appender-ref>
+		<appender-ref ref="fileLogAppender"></appender-ref>
+	</root>
+	
+</configuration>

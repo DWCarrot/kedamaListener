@@ -3,7 +3,7 @@ package kmc.kedamaListener;
 import java.nio.charset.Charset;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -26,7 +26,7 @@ public class IRCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 			return;
 		IRCMessage ircMsg = IRCMessage.fromString(s);
 		if(record)
-			logger.info(ircMsg.asString(new StringBuilder().append('[').append(ircMsg.time).append("|=>]")));
+			logger.info("[=>|]{}", s);
 		out.add(ircMsg);
 	}
 

@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
+import java.time.Instant;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
@@ -189,7 +190,7 @@ public class MCPCPing implements Runnable {
 			pointer = 0;
 			length = 0;
 		} catch (IOException e) {
-			App.logger.error("#Exception @" + Thread.currentThread().getName(), e);
+			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
 		}
 	}
 	
@@ -217,25 +218,27 @@ public class MCPCPing implements Runnable {
 			int pkgid = readVarInt();
 			if(pkgid != 0x00)
 				throw new IOException("Unpredictable reply: package id = " + pkgid);
-			plc.setTime(System.currentTimeMillis());
-			Gson gson = new GsonBuilder().setDateFormat("yyyy-MM-dd HH:mm:ss").create();
+			Instant t = Instant.now();
+			Gson gson = App.gsonbuilder.create();
 			MCPCPingReply reply = gson.fromJson(readString(), MCPCPingReply.class);
 			List<String> players = reply.getPlayerList();
 			List<String> removes = plc.check(players);
 			
-			App.logger.info(new StringBuilder().append("#ping -adds:").append(players).append(" -removes: ").append(removes));
-			if(!(players.isEmpty() && removes.isEmpty() && successCount != 0))
+			App.logger.info("#ping adds={} removes={}", players, removes);
+			if(!(players.isEmpty() && removes.isEmpty() && successCount != 0)) {
+				plc.setTime(t);
 				rc.record();
+			}
 			++successCount;
 			failCount = 0;
 		} catch (IOException e) {
 			++failCount;
-			App.logger.error("#Exception @" + Thread.currentThread().getName(), e);
+			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
 		} finally {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				App.logger.error("#Exception @" + Thread.currentThread().getName(), e);
+				App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
 			}
 		}
 	}
@@ -255,7 +258,7 @@ public class MCPCPing implements Runnable {
 				Thread.sleep(next - System.currentTimeMillis());
 			}
 		} catch(InterruptedException | MCPingException e) {
-			App.logger.error("#Exception@" + Thread.currentThread().getName(), e);
+			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
 		}
 	}
 	

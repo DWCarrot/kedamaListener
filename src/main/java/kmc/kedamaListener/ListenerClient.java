@@ -36,12 +36,10 @@ public class ListenerClient {
 		status = ListenerClientStatusManager.getListenerClientStatusManager().getListenerClientStatus();
 	}
 	
-	public void settingRecord() throws JsonSyntaxException, IOException {
-		
-		File file = new File(settings.recordfolder);
-		if(!file.exists())
-			file.mkdirs();
-		rc = PlayerCountRecord.getPlayerCountRecord(file.getAbsolutePath() + File.separator + "data", settings.recordnum);
+	public void settingRecord() {
+		RecordInCSV.initLogger();
+		RecordInJson.initLogger();
+		rc = PlayerCountRecord.getPlayerCountRecord();
 	}
 	
 	public void start() throws Exception {

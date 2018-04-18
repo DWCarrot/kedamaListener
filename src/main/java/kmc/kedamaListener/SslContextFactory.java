@@ -7,6 +7,9 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import io.netty.util.internal.SystemPropertyUtil;
 import kmc.kedamaListener.js.settings.SSLSettings;
 
@@ -14,6 +17,7 @@ public class SslContextFactory {
 
 	private static SSLContext clientContext;
 	private static String PROTOCOL = "TLS";
+	private static Logger logger = LoggerFactory.getLogger(SslContextFactory.class);
 	
 	public static SSLContext getClientContext(SSLSettings settings) {
 		if(clientContext == null && settings != null) {
@@ -37,9 +41,9 @@ public class SslContextFactory {
 	            clientContext = SSLContext.getInstance(PROTOCOL);
 	            clientContext.init(kmf2.getKeyManagers(), tmf2.getTrustManagers(), new SecureRandom());          
 	        } catch (Exception e) {
-	            App.logger.error("SSLException @" + Thread.currentThread().getName(), e);
+	            logger.error("#SSLException", e);
 	        }
-	        App.logger.info("#process: SSLContext loaded");
+	        logger.info("#process: SSLContext loaded");
 		}
         return clientContext;
     }

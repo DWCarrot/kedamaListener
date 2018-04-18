@@ -1,16 +1,17 @@
 package kmc.kedamaListener;
 
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 public class ListenerClientStatus {
 	
-	public Date current;
+	public LocalDateTime current;
 	
-	public Date start;
+	public LocalDateTime start;
 	
-	public Date lastfail;
+	public LocalDateTime lastfail;
 	
-	public long running;
+	public Duration running;
 		
 	public int restartlistener;
 		

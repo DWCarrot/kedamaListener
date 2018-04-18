@@ -1,5 +1,7 @@
 package kmc.kedamaListener;
 
+import java.time.Instant;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import kmc.kedamaListener.js.settings.IRCBasicSettings;
@@ -16,9 +18,9 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void channelActive(ChannelHandlerContext ctx) throws Exception {
-		ctx.write(new IRCMessage(System.currentTimeMillis(), "NICK", settings.nick));
+		ctx.write(new IRCMessage(Instant.now(), "NICK", settings.nick));
 		ctx.flush();
-		ctx.write(new IRCMessage(System.currentTimeMillis(), "USER", settings.username, String.valueOf(settings.usermode), "*", ":" + settings.realname));
+		ctx.write(new IRCMessage(Instant.now(), "USER", settings.username, String.valueOf(settings.usermode), "*", ":" + settings.realname));
 		ctx.flush();
 		state = 1;
 //		super.channelActive(ctx);	/**	don't fire next channel automatically	**/
@@ -36,7 +38,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 				throw new IRCLoginExcption("ERROR: IRC nickname is already in use");
 			}
 			if(user.getNick().equals("NickServ")) {
-				ctx.write(new IRCMessage(System.currentTimeMillis(), "PRIVMSG", "NickServ", ":IDENTIFY " + settings.password));
+				ctx.write(new IRCMessage(Instant.now(), "PRIVMSG", "NickServ", ":IDENTIFY " + settings.password));
 				ctx.flush();
 				state = 2;
 				break;
@@ -45,7 +47,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 		case 2:
 			if(user.getNick().equals("NickServ")) { 
 				if(ircm.getTrailing().startsWith("You are now identified")) {
-					ctx.write(new IRCMessage(System.currentTimeMillis(), "JOIN", settings.channel, settings.channelpw));
+					ctx.write(new IRCMessage(Instant.now(), "JOIN", settings.channel, settings.channelpw));
 					ctx.flush();
 					state = 3;
 					break;
@@ -64,7 +66,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 			if(ircm.getCommand().equals("KICK") && ircm.middles.get(1).equals(settings.nick))
 				throw new IRCLoginExcption("ERROR: being kicked by " + user.asString());
 			if(ircm.getCommand().equals("PING")) {
-				ctx.write(new IRCMessage(System.currentTimeMillis(), "PONG", ircm.trailing));
+				ctx.write(new IRCMessage(Instant.now(), "PONG", ircm.trailing));
 				ctx.flush();
 				break;
 			}
@@ -76,7 +78,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		App.logger.error("#Exception @" + Thread.currentThread().getName(), cause);
+		App.logger.error("#Exception @{}", Thread.currentThread().getName(), cause);
 		ctx.close();
 //		super.exceptionCaught(ctx, cause);	/**	don't throw to next channel automatically	**/
 	}
