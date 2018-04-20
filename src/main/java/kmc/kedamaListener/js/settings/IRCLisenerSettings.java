@@ -7,4 +7,6 @@ public class IRCLisenerSettings {
 	public String joinkey;
 	
 	public String leavekey;
+	
+	public String excute1;
 }			

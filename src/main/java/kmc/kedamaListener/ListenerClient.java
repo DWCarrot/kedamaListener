@@ -1,11 +1,8 @@
 package kmc.kedamaListener;
 
-import java.io.File;
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import javax.net.ssl.SSLEngine;
 
-import com.google.gson.JsonSyntaxException;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -62,7 +59,8 @@ public class ListenerClient {
 					 .addLast("in2", new IRCMessageDecoder())
 					 .addLast("out1", new IRCMesseageEncoder())
 					 .addLast("in3", new IRCLoginHandle())
-					 .addLast("in4", new IRCListenerHandler());
+					 .addLast("in4", new IRCListenerHandler())
+					 .addLast("in5", new IRCResponseHandle());
 				}			 		
 		 	});
 			ChannelFuture future = b.connect();

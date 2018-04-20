@@ -1,5 +1,6 @@
 package kmc.kedamaListener;
 
+import java.util.Arrays;
 import java.util.Random;
 
 public class OffPassword {
@@ -38,7 +39,41 @@ public class OffPassword {
 	}
 	
 	public static void clear(char[] pw) {
-		for(int i = 0; i < pw.length; ++i)
-			pw[i] = '\0';
+		if(pw != null)
+			for(int i = 0; i < pw.length; ++i)
+				pw[i] = '\0';
+	}
+	
+	private char[] pw;
+	
+	private long time;
+	
+	public OffPassword() {
+		pw = null;
+		time = -1;
+	}
+	
+	public String genOffPw() {
+		pw = generatePw1();
+		time = System.currentTimeMillis();
+		return new String(pw);
+	}
+	
+	public boolean hasPw() {
+		if(System.currentTimeMillis() - time > 60 * 1000) {
+			clear(pw);
+			pw = null;
+		}
+		return pw != null;
+	}
+	
+	public boolean check(String inpw) {
+		boolean b = false;
+		if(hasPw()) {
+			b = Arrays.equals(encodePw1(pw), inpw.toCharArray());
+			clear(pw);
+			pw = null;
+		}
+		return b;
 	}
 }

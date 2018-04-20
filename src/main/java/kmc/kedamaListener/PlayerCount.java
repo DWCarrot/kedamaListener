@@ -18,10 +18,13 @@ public class PlayerCount {
 	
 	private Set<String> online;
 	
+	private boolean continuous;
+	
 	public PlayerCount() {
 		timestamp = null;
 		onlineNum = 0;
 		online = new TreeSet<>();
+		continuous = false;
 	}
 
 	public synchronized Instant getTimestamp() {
@@ -58,6 +61,14 @@ public class PlayerCount {
 		this.online = online;
 	}
 	
+	public boolean getContinuous() {
+		return continuous;
+	}
+
+	public void setContinuous(boolean continuous) {
+		this.continuous = continuous;
+	}
+	
 	public synchronized boolean add(String player) {
 		boolean res = online.add(player);
 		if(res)
@@ -87,6 +98,8 @@ public class PlayerCount {
 		onlineNum = online.size();
 		return removed;
 	}
+
+	
 }
 
 

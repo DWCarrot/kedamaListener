@@ -1,14 +1,8 @@
 package kmc.kedamaListener;
 
 
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.time.ZonedDateTime;
-
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import kmc.kedamaListener.PlayerCount;
 
 public class PlayerCountRecord {
@@ -41,6 +35,7 @@ public class PlayerCountRecord {
 	
 	public synchronized void record() throws IOException {
 		String s = gson.toJson(plc);
+		plc.setContinuous(true);
 		RecordInJson.logger.info(s);
 		RecordInCSV.logger.info(
 				"{},{},{}",

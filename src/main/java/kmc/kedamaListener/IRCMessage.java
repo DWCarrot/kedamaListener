@@ -107,6 +107,13 @@ public class IRCMessage {
 		return this;
 	}
 	
+	public IRCMessage setMiddles(int index, String para) {
+		if(middles == null)
+			middles = new ArrayList<>();
+		middles.set(index, para);
+		return this;
+	}
+	
 	public IRCMessage addMiddles(String para) {
 		if(middles == null)
 			middles = new ArrayList<>();

@@ -11,8 +11,6 @@ import java.time.Instant;
 import java.util.logging.Logger;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import kmc.kedamaListener.PlayerCount;
 import kmc.kedamaListener.js.mcpingreply.MCPCPingReply;
 
@@ -41,7 +39,7 @@ public class MCPCPing implements Runnable {
 	int retryPeriod;
 	int maxFailTimes;
 	
-	
+	Gson gson = App.gsonbuilder.create();
 	
 	public void setMaxFailTimes(int maxFailTimes) {
 		this.maxFailTimes = maxFailTimes;
@@ -219,7 +217,7 @@ public class MCPCPing implements Runnable {
 			if(pkgid != 0x00)
 				throw new IOException("Unpredictable reply: package id = " + pkgid);
 			Instant t = Instant.now();
-			Gson gson = App.gsonbuilder.create();
+			
 			MCPCPingReply reply = gson.fromJson(readString(), MCPCPingReply.class);
 			List<String> players = reply.getPlayerList();
 			List<String> removes = plc.check(players);

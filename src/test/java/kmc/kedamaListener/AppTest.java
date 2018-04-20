@@ -1,6 +1,6 @@
 package kmc.kedamaListener;
 
-import java.util.Scanner;
+import java.io.FileNotFoundException;
 
 import com.google.gson.Gson;
 
@@ -37,11 +37,15 @@ public class AppTest
      */
     public void testApp()
     {
-    	ListenerClientStatusManager mgr = ListenerClientStatusManager.getListenerClientStatusManager();
     	App.genGsonBuilder();
     	Gson gson = App.gsonbuilder.create();
-    	ListenerClientStatus s = mgr.getListenerClientStatus();
-    	String p = gson.toJson(s, s.getClass());
+    	try {
+			SettingsManager.getSettingsManager("settings.json");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	String p = gson.toJson(SysInfo.getSysInfo());
     	System.out.println(p);
         assertTrue( true );
     }

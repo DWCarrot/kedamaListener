@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="false" debug="true">
+<configuration scan="false" debug="false">
 	
 	<appender name="stdout" class="ch.qos.logback.core.ConsoleAppender">
 		<Encoding>UTF-8</Encoding>

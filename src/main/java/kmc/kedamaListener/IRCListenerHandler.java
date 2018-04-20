@@ -1,15 +1,9 @@
 package kmc.kedamaListener;
 
 import java.lang.Thread.State;
-import java.time.Instant;
-
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import kmc.kedamaListener.js.settings.MCPingSettings;
-import kmc.kedamaListener.js.settings.IRCBasicSettings;
 import kmc.kedamaListener.js.settings.IRCLisenerSettings;
 import kmc.kedamaListener.ListenerClientStatusManager;
 
@@ -22,28 +16,16 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	
 	private MCPingSettings mcsettings;
 	private IRCLisenerSettings irclsettings;
-	private IRCBasicSettings ircsettings;
 	private ListenerClientStatusManager mgr;
-	private Gson gson;
-	
-	private String replyKey;
-	
-	private char[] pw;
-	
-	private int lineLimit = 512;
 	
 	public IRCListenerHandler() {
 		super();
 		mcsettings = SettingsManager.getSettingsManager().getMcping();
 		irclsettings = SettingsManager.getSettingsManager().getIrc().listener;
-		ircsettings = SettingsManager.getSettingsManager().getIrc().basic;
 		t = null;
 		rc = PlayerCountRecord.getPlayerCountRecord();
 		plc = rc.getPlayerCount();			
-		replyKey = "@"+ ircsettings.username;
 		mgr = ListenerClientStatusManager.getListenerClientStatusManager();
-		gson = App.gsonbuilder.create();
-		pw = null;
 	}
 	
 	public void ping() {
@@ -97,17 +79,6 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 				}
 			}	
 		}
-		int i, j, optcode;
-		if((i = ircMsg.getTrailing().indexOf(replyKey)) >= 0) {
-			try {
-				i = ircMsg.getTrailing().indexOf('#', i);
-				j = ircMsg.getTrailing().indexOf('.', i);
-				optcode = Integer.valueOf(ircMsg.trailing.substring(i + 1, j));
-				execOptcode(optcode, ctx, ircMsg);
-			} catch(StringIndexOutOfBoundsException | NumberFormatException e) {
-				//TODO
-			}
-		}
 		super.channelRead(ctx, msg);
 	}
 	
@@ -130,87 +101,6 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
 		App.logger.error("#Exception @{}", Thread.currentThread().getName(), cause);
 //		super.exceptionCaught(ctx, cause);
-	}
-	
-	public void execOptcode(int optcode, ChannelHandlerContext ctx, IRCMessage msg) {
-		String target = msg.getUser().nick;
-		IRCMessage send = new IRCMessage();
-		switch(optcode) {
-		case 100:
-			target = msg.middles.get(0);
-		case 0:
-			send.setTime(Instant.now())
-				.setCommand("PRIVMSG")
-				.addMiddles(target)
-				.setTrailing(send.getTime().toString());
-			break;
-		case 101:
-			target = msg.middles.get(0);
-		case 1:
-			send.setTime(Instant.now())
-				.setCommand("PRIVMSG")
-				.addMiddles(target)
-				.setTrailing(gson.toJson(ListenerClientStatusManager.getListenerClientStatusManager().getListenerClientStatus()));
-			break;
-		case 102:
-			target = msg.middles.get(0);
-		case 2:
-			send.setTime(Instant.now())
-				.setCommand("PRIVMSG")
-				.addMiddles(target)
-				.setTrailing(gson.toJson(PlayerCountRecord.getPlayerCountRecord().getPlayerCount()));
-			break;	
-		case 5:
-			send.setTime(Instant.now())
-				.setCommand("PRIVMSG")
-				.addMiddles(target)
-				.setTrailing(gson.toJson(SysInfo.getSysInfo()));
-			break;
-		case 27:
-			if(pw == null) {
-				pw = OffPassword.generatePw1();
-				send.setTime(Instant.now())
-					.setCommand("PRIVMSG")
-					.addMiddles(target)
-					.setTrailing(new String(pw));
-				break;
-			} else {
-				int i = msg.getTrailing().indexOf("${");
-				i = (i > 0 ? i + 2 : msg.getTrailing().length());
-				int j = msg.getTrailing().indexOf('}', i);
-				String pwp = null;
-				if(j > i)
-					pwp = msg.getTrailing().substring(i, j);
-				if(pwp != null && pwp.equals(new String(OffPassword.encodePw1(pw)))) {
-					send.setTime(Instant.now())
-						.setCommand("QUIT");
-					App.logger.info("## remoted to close ##");
-					App.failTimes = -1;
-				} else {
-					send.setTime(Instant.now())
-						.setCommand("PRIVMSG")
-						.addMiddles(target)
-						.setTrailing("Invalid");
-				}
-				OffPassword.clear(pw);
-				pw = null;
-			}
-			break;
-		default:
-			send = null;
-		}
-		if(send != null) {
-//			String s = send.getTrailing();
-//			int k;
-//			for(k = lineLimit; k < s.length(); k += lineLimit) {
-//				send.setTrailing(s.substring(k - lineLimit, k));
-//				ctx.write(send);
-//			}
-//			if(k != lineLimit)
-//				send.setTrailing(s.substring(k - lineLimit));		//Bug:	when trail == null;
-			ctx.write(send);
-			ctx.flush();
-		}
 	}
 
 }

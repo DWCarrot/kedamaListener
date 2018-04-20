@@ -33,7 +33,7 @@ public class App {
 	
 	public static int failTimes;
 	
-	public final static int version = 7;
+	public final static int version = 16;
 	
 	public static GsonBuilder gsonbuilder;
 	
@@ -103,8 +103,7 @@ public class App {
 		} catch (Exception e) {
 			logger.error("#Exception @{}" , Thread.currentThread().getName(), e);
 		}
-    	logger.info("#end");
-    	
+    	logger.info("#end\r\n");   	
     }
     
 }

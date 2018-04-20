@@ -30,8 +30,8 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 		IRCMessage ircm = (IRCMessage)msg;
 		IRCUser user = ircm.getUser();
-		if(ircm.getCommand().equals("ERROR"))
-			throw new IRCLoginExcption("ERROR: ERROR :" + ircm.trailing);
+		if(ircm.getCommand().equals("ERROR") && state != 5)
+			throw new IRCLoginExcption("IRCERROR: ERROR :" + ircm.trailing);
 		switch(state) {
 		case 1:
 			if(ircm.getTrailing().startsWith("Nickname is already in use")) {
@@ -63,14 +63,24 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 			}
 			break;
 		case 4:
-			if(ircm.getCommand().equals("KICK") && ircm.middles.get(1).equals(settings.nick))
-				throw new IRCLoginExcption("ERROR: being kicked by " + user.asString());
-			if(ircm.getCommand().equals("PING")) {
+			switch(ircm.getCommand()) {
+			case "KICK":
+				if(ircm.middles.get(1).equals(settings.nick))
+					throw new IRCLoginExcption("ERROR: being kicked by " + user.asString());
+				break;
+			case "PING":
 				ctx.write(new IRCMessage(Instant.now(), "PONG", ircm.trailing));
 				ctx.flush();
 				break;
+			case "QUIT":
+				state = 5;
+				ctx.close();
+				break;
+			case "PRIVMSG":
+				ctx.fireChannelRead(msg);
+				break;
 			}
-			ctx.fireChannelRead(msg);
+			break;
 		}
 //		super.channelRead(ctx, msg);	/**	don't fire next channel automatically	**/
 	}

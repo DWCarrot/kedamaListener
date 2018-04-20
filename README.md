@@ -26,3 +26,11 @@ ping 方法完成
 加入 slf4j & logback ；使用logback按天记录PlayerCount信息
 
 @vesrion=0.0.1-SNAPSHOT-7 基本稳定的版本
+
+### 2018/04/20
+
+改善了命令回复
+
+json记录增加 continuous项判断是否连续
+
+#### 准备上线！

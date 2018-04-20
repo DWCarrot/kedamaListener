@@ -1,14 +1,13 @@
 package kmc.kedamaListener;
 
+import java.util.List;
+
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 public class SysInfo {
 
-	private static String[] keys = {
-			"os.name", "os.version", "os.arch",
-			"java.vm.name", "java.vm.version", "java.vm.vendor",
-			"user.country", "user.name", "file.encoding"
-			};
+	private static List<String> keys = SettingsManager.getSettingsManager().getSettings().sysinfo;
 	
 	private static JsonObject info;
 	
@@ -22,16 +21,24 @@ public class SysInfo {
 		JsonObject res = new JsonObject();
 		int i, j;
 		String field;
-		JsonObject obj, obj2;
+		JsonObject obj;
+		JsonElement obj2;
 		for(String key : keys) {
 			for(i = 0, j = key.indexOf('.'), obj = res; j > 0; i = j + 1, j = key.indexOf('.', i)) {
 				field = key.substring(i, j);
-				obj2 = (JsonObject)obj.get(field);
+				obj2 = obj.get(field);
 				if(obj2 == null) {
 					obj2 = new JsonObject();
 					obj.add(field, obj2);
+				} 
+				if(obj2.isJsonPrimitive()) {
+					obj.remove(field);
+					JsonObject t = new JsonObject();
+					t.add(field, obj2);
+					obj.add(field, t);
+					obj2 = t;
 				}
-				obj = obj2;
+				obj = (JsonObject) obj2;
 			}
 			field = key.substring(i);
 			obj.addProperty(field, System.getProperty(key));
