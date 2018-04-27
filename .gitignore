@@ -21,6 +21,8 @@ csvRecord/
 settings.json
 *.keystore
 *.keystore.old
+*.cer
+*.crt
 .project
 .classpath
 

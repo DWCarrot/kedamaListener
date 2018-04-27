@@ -1,6 +1,9 @@
 package kmc.kedamaListener;
 
 import java.util.List;
+
+import org.slf4j.Logger;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,7 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.time.Instant;
-import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import kmc.kedamaListener.PlayerCount;
@@ -16,7 +18,9 @@ import kmc.kedamaListener.js.mcpingreply.MCPCPingReply;
 
 public class MCPCPing implements Runnable {
 	
-	Logger logger;
+	Logger logger = App.logger;
+	Gson gson = App.gsonbuilder.create();
+	
 	
 	PlayerCount plc;
 	PlayerCountRecord rc;
@@ -39,7 +43,7 @@ public class MCPCPing implements Runnable {
 	int retryPeriod;
 	int maxFailTimes;
 	
-	Gson gson = App.gsonbuilder.create();
+	
 	
 	public void setMaxFailTimes(int maxFailTimes) {
 		this.maxFailTimes = maxFailTimes;
@@ -188,7 +192,7 @@ public class MCPCPing implements Runnable {
 			pointer = 0;
 			length = 0;
 		} catch (IOException e) {
-			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
+			logger.warn("#Exception @{}", Thread.currentThread(), e);
 		}
 	}
 	
@@ -222,32 +226,34 @@ public class MCPCPing implements Runnable {
 			List<String> players = reply.getPlayerList();
 			List<String> removes = plc.check(players);
 			
-			App.logger.info("#ping adds={} removes={}", players, removes);
+			logger.info("#ping adds={} removes={}", players, removes);
 			if(!(players.isEmpty() && removes.isEmpty() && successCount != 0)) {
 				plc.setTime(t);
+				plc.setContinuous(false);
 				rc.record();
 			}
 			++successCount;
 			failCount = 0;
 		} catch (IOException e) {
 			++failCount;
-			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
+			logger.warn("#Exception @{}", Thread.currentThread(), e);
 		} finally {
 			try {
 				socket.close();
 			} catch (IOException e) {
-				App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
+				logger.warn("#Exception @{}", Thread.currentThread(), e);
 			}
 		}
 	}
 
-	private long last;
+	
 	
 	@Override
 	public void run() {
+		long last;
 		long next = System.currentTimeMillis();;
 		try {
-			while(true) {
+			while(!Thread.interrupted()) {
 				last = next;
 				ping();
 				if(failCount >= maxFailTimes)
@@ -256,7 +262,7 @@ public class MCPCPing implements Runnable {
 				Thread.sleep(next - System.currentTimeMillis());
 			}
 		} catch(InterruptedException | MCPingException e) {
-			App.logger.error("#Exception @{}", Thread.currentThread().getName(), e);
+			logger.warn("#Exception @{}", Thread.currentThread(), e);
 		}
 	}
 	

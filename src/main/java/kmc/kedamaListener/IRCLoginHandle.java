@@ -2,6 +2,8 @@ package kmc.kedamaListener;
 
 import java.time.Instant;
 
+import org.slf4j.Logger;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import kmc.kedamaListener.js.settings.IRCBasicSettings;
@@ -10,6 +12,8 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	
 	private int state;
 	private IRCBasicSettings settings;
+	
+	private Logger logger = App.logger;
 	
 	public IRCLoginHandle() {
 		state = 0;
@@ -31,7 +35,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 		IRCMessage ircm = (IRCMessage)msg;
 		IRCUser user = ircm.getUser();
 		if(ircm.getCommand().equals("ERROR") && state != 5)
-			throw new IRCLoginExcption("IRCERROR: ERROR :" + ircm.trailing);
+			throw new IRCLoginExcption("IRCERROR: ERROR :" + ircm.getTrailing());
 		switch(state) {
 		case 1:
 			if(ircm.getTrailing().startsWith("Nickname is already in use")) {
@@ -65,7 +69,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 		case 4:
 			switch(ircm.getCommand()) {
 			case "KICK":
-				if(ircm.middles.get(1).equals(settings.nick))
+				if(ircm.getMiddles().get(1).equals(settings.nick))
 					throw new IRCLoginExcption("ERROR: being kicked by " + user.asString());
 				break;
 			case "PING":
@@ -73,8 +77,10 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 				ctx.flush();
 				break;
 			case "QUIT":
-				state = 5;
-				ctx.close();
+				if(ircm.getUser().getNick().equals(settings.nick)) {
+					state = 5;
+					ctx.close();
+				}
 				break;
 			case "PRIVMSG":
 				ctx.fireChannelRead(msg);
@@ -88,7 +94,7 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		App.logger.error("#Exception @{}", Thread.currentThread().getName(), cause);
+		logger.warn("#Exception @{}", Thread.currentThread(), cause);
 		ctx.close();
 //		super.exceptionCaught(ctx, cause);	/**	don't throw to next channel automatically	**/
 	}

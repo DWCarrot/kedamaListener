@@ -19,14 +19,31 @@ public class IRCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	
 	private Logger logger = App.logger;
 	
+	private WatchDogTimer wdt;
+	
+	public IRCMessageDecoder() {
+		
+	}
+	
+	public IRCMessageDecoder setWatchDogTimer(WatchDogTimer wdt) {
+		this.wdt = wdt;
+		return this;
+	}
+	
 	@Override
 	protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
 		String s = msg.toString(charset);
 		if(s == null || s.equals(""))
 			return;
 		IRCMessage ircMsg = IRCMessage.fromString(s);
-		if(record)
-			logger.info("[=>|]{}", s);
+		if(record) {
+			if(wdt != null)
+				wdt.reset();
+			if(ircMsg.getCommand().equals("PING"))
+				logger.debug("[=>|]{}", s);
+			else
+				logger.info("[=>|]{}", s);
+		}
 		out.add(ircMsg);
 	}
 

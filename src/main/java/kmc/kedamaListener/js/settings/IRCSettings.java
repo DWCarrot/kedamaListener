@@ -12,5 +12,7 @@ public class IRCSettings {
 	
 	public int normalworking;
 		
-	public int maxfailtime;		
+	public int maxfailtime;
+	
+	public int msgtimeout;
 }

@@ -1,6 +1,9 @@
 package kmc.kedamaListener;
 
 import java.lang.Thread.State;
+
+import org.slf4j.Logger;
+
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import kmc.kedamaListener.js.settings.MCPingSettings;
@@ -17,6 +20,8 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	private MCPingSettings mcsettings;
 	private IRCLisenerSettings irclsettings;
 	private ListenerClientStatusManager mgr;
+	
+	private Logger logger = App.logger;
 	
 	public IRCListenerHandler() {
 		super();
@@ -60,7 +65,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 					//TODO
 				}
 				if(t.getState() == State.TERMINATED) {
-					mgr.status.restartpinger++;
+					mgr.getListenerClientStatus().restartpinger++;
 					ping();				
 				}
 			}
@@ -74,7 +79,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 					//TODO 
 				}
 				if(t.getState() == State.TERMINATED) {
-					mgr.status.restartpinger++;
+					mgr.getListenerClientStatus().restartpinger++;
 					ping();					
 				}
 			}	
@@ -90,16 +95,21 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		if(ping != null)
-			ping.close();
-		if(t != null)
-			t.interrupt();
-		super.channelInactive(ctx);
+		try {
+			if(ping != null)
+				ping.close();
+			if(t != null)
+				t.interrupt();
+			logger.warn("#process: pinger closed");
+			super.channelInactive(ctx);
+		} catch (Exception e) {
+			logger.warn("#Exception @{}", Thread.currentThread(), e);
+		}
 	}
 	
 	@Override
 	public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-		App.logger.error("#Exception @{}", Thread.currentThread().getName(), cause);
+		logger.warn("#Exception @{}", Thread.currentThread(), cause);
 //		super.exceptionCaught(ctx, cause);
 	}
 

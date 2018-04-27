@@ -8,5 +8,9 @@ public class Settings {
 	
 	public MCPingSettings mcping;
 	
+	public DataServerSettings dataserver;
+	
+	public FileSave filesave;
+	
 	public List<String> sysinfo;
 }

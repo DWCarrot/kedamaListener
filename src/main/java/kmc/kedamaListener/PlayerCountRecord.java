@@ -1,7 +1,8 @@
 package kmc.kedamaListener;
 
 
-import java.io.IOException;
+import org.slf4j.Logger;
+
 import com.google.gson.Gson;
 import kmc.kedamaListener.PlayerCount;
 
@@ -9,7 +10,9 @@ public class PlayerCountRecord {
 
 	private Gson gson = App.gsonbuilder.create();
 	
-	private PlayerCount plc = new PlayerCount();
+	private Logger logger = App.logger;
+	
+	private PlayerCount plc;
 	
 	private static PlayerCountRecord obj;
 	
@@ -19,21 +22,28 @@ public class PlayerCountRecord {
 		return obj;
 	}
 	
-	public static void release() throws IOException {
+	public static String getSPlayerCountRecord() {
+		if(obj == null || obj.plc == null)
+			return null;
+		else
+			return obj.gson.toJson(obj.plc);
+	}
+	
+	public static void release() {
 		if(obj != null)
 			obj.plc = null;
 		obj = null;
 	}
 	
 	private PlayerCountRecord() {
-
+		plc = new PlayerCount();
 	}
 	
 	public PlayerCount getPlayerCount() {
 		return plc;
 	}
 	
-	public synchronized void record() throws IOException {
+	public synchronized void record() {
 		String s = gson.toJson(plc);
 		plc.setContinuous(true);
 		RecordInJson.logger.info(s);
@@ -43,6 +53,6 @@ public class PlayerCountRecord {
 				plc.getTime().format(App.formatter),
 				plc.getOnlineNum()
 			);
-		App.logger.info("#record {}", s);
+		logger.info("#record {}", s);
 	}
 }

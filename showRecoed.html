@@ -1,0 +1,267 @@
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>query</title>
+	</head>
+	<body>
+		<div class="control">
+			<button id="query" onclick="queryData()" >Query</button>
+			<input type="date" id="date1" ></input>
+			<input type="date" id="date2" ></input>
+			now<input type="checkbox" id="check" ></input>
+			<div id="loadInspector" ></div>
+			<button id="draw" onclick="draw()" >Draw</button>
+			<select id="period">
+				<option value=9007199254740991 >plain</option>	<!Number.MAX_SAFE_INTEGER/>
+				<option value=86400000 >daily</option>	<!1*24*60*60*1000/>				
+				<option value=604800000 >weekly</option>	<!7*24*60*60*1000/>
+			</select>
+		</div>
+		<div class="show">
+			<div id="main" style="height:400px;width: 1200px"></div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript">
+
+	function loadScript(url, callback) {
+		var script = document.createElement("script");
+		script.type = "text/javascript";
+		if(typeof(callback) != "undefined"){
+			if (script.readyState) {
+				script.onreadystatechange = function () {
+					if (script.readyState == "loaded" || script.readyState == "complete") {
+						script.onreadystatechange = null;
+						callback();
+					}
+				};
+			} else {
+				script.onload = function () {
+					callback();
+				};
+			}
+		}
+		script.src = url;
+		document.body.appendChild(script);
+	}
+	
+	function queryData() {
+		var item1 = document.getElementById("date1");
+		var item2 = document.getElementById("date2");
+		var check = document.getElementById("check");
+		var url = "https://118.25.6.33:28443/kedamaListener/PlayerCountRecord"
+		var func;
+		if(check.checked) {
+			url += ("?" + "check=" + "now" + "&" + "dest=" + "current");
+			func = 3;
+		} else {
+			if(item1.value == "" && item2.value == "") {
+				url += ("?" + "list=" + "list" + "&" + "dest=" + "list")
+				func = 2;
+			} else {
+				url += ("?" + "start=" + item1.value + "&end=" + item2.value + "&" + "dest=" + "data");
+				func = 1;
+			}				
+		}
+		
+		console.log(url);
+		loadScript(url, function() {
+			switch(func) {
+			case 1:
+				console.log("#loaded data[" + data.length + "]");
+				document.getElementById("loadInspector").innerHTML = "#loaded data[" + data.length + "] from " + url;
+				break;
+			case 2:
+				var s = '<table border="1"><tbody>';
+				s += '<tr><td>time</td><td>file</td></tr>';
+				for(var i = 0; i < list.length; ++i)
+					s += ('<tr><td>' + list[i].time + '</td><td>' + list[i].file + '</td></tr>');
+				s += '</tbody></table>';
+				document.getElementById("loadInspector").innerHTML = s;
+				break;
+			case 3:
+				var s = '<table style="border: dotted;"><tbody>';
+				s += '<tr>';
+				for(var i = 0; i < current.online.length; ++i)
+					s += ('<td style="width:125px;">' + current.online[i] + '</td>');
+				s += '</tr>';
+				s += '</tbody></table>';
+				document.getElementById("loadInspector").innerHTML = s;
+				break;
+			}
+		});
+	}
+	
+	var getRandomColor = function(){	
+		for(var c = Math.random()*0xffffff; ((c >>> 0) & 0xff) < 0x80 && ((c >>> 8) & 0xff) < 0x80 && ((c >>> 16) & 0xff) < 0x80;c = Math.random()*0xffffff);
+		console.log((c << 0).toString(16));
+		return '#' + (c << 0).toString(16);
+	}
+	
+	var stdDay = new Date("2007-01-01T00:00:00.000+08:00")	//Monday
+	var first;
+	
+	function mergeData(period, data) {
+		var data3 = [];
+		var data2 = [];		
+		if(data.length > 0)
+			first = last = data[0].timestamp - (data[0].timestamp - stdDay.getTime()) % period;
+		for(var i = 0; i < data.length; ++i) {
+			if((data[i].continuous == false || data[i].timestamp - last > period) && data3.length > 0) {
+				data2.push(data3);
+				data3 = [];
+				last = data[i].timestamp - (data[i].timestamp - stdDay.getTime()) % period;
+			}
+			data3.push([data[i].timestamp - last, data[i].onlineNum, new Date(data[i].timestamp)]);
+		}
+		if(data3.length > 0)
+			data2.push(data3);
+		return data2;
+	}
+	
+	var Week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+	
+	function draw() {
+		var period = document.getElementById("period");
+		console.log(period.value);
+		var data2 = [[new Date(),0]];
+		try {
+			data2 = mergeData(period.value, data);
+		} catch(e) {
+			console.log(e);
+		}
+		
+		var option = {
+			backgroundColor: '#21202D',
+			title: {
+				text: 'PlayerCountRecord',
+				textStyle: {
+					color: '#288312',
+					fontSize: 20,
+					align: 'center'
+				}
+			},
+			tooltip: {
+				trigger: 'axis',
+				axisPointer: {
+					animation: false,
+					snap: true,
+					type: 'line',
+					lineStyle: {
+						color: '#376df4',
+						width: 2,
+						opacity: 1
+					}
+				},
+				formatter: function (params) {
+					var d = params[0].data[2];
+					var n = params[0].data[1];
+					return Week[d.getDay()] + ' ' + echarts.format.formatTime('yyyy-MM-dd hh:mm:ss', d) + '<br />' + n;
+				}
+			},
+			xAxis: null,
+			yAxis: {
+				min: 0,
+				max: 20,
+				scale: true,
+				axisLine: {
+					lineStyle: {
+						color: '#8392A5'
+					}
+				}
+			},
+			dataZoom: [
+				{
+					type: 'inside'
+				}
+			],
+			series: []
+        };
+
+		switch(period.value) {
+		case period.options[0].value:
+			option.xAxis = {
+				scale: true,
+				axisLabel: {
+					formatter: function(value) {
+						return echarts.format.formatTime('yyyy-MM-dd hh:mm:ss', new Date(value + first));
+					},
+				},
+				axisLine: {
+					lineStyle: {
+						color: '#8392A5'
+					}
+				}
+			};
+			break;
+		case period.options[1].value:
+			option.xAxis = {
+				scale: true,
+				axisLabel: {
+					formatter: function(value) {
+						return echarts.format.formatTime('hh:mm:ss', new Date(value + first));
+					},
+				},
+				axisLine: {
+					lineStyle: {
+						color: '#8392A5'
+					}
+				},
+				splitNumber: 12,
+				minInterval: 1,
+				maxInterval: 24 * 60 * 60 * 1000 / 12
+			};
+			break;
+		case period.options[2].value:
+			option.xAxis = {
+				scale: true,
+				axisLabel: {
+					formatter: function(value) {
+						var d = new Date(value + first);
+						return Week[d.getDay()] + echarts.format.formatTime('hh:mm:ss', d);
+					},
+				},
+				axisLine: {
+					lineStyle: {
+						color: '#8392A5'
+					}
+				},
+				splitNumber: 7,
+				minInterval: 1,
+				maxInterval: 24 * 60 * 60 * 1000
+			};
+			break;
+		}
+		
+		var isDiffPeroid = function(data2, i) {
+			if(i == 0)
+				return true;
+			var a = data2[i][0][2].getTime() - data2[i][0][0];
+			var b = data2[i-1][0][2].getTime() - data2[i-1][0][0];
+			return a != b;
+		}
+		
+		var color;
+		for(var i = 0; i < data2.length; ++i) {
+			if(period.value == Number.MAX_SAFE_INTEGER || isDiffPeroid(data2, i))
+				color = getRandomColor();
+			option.series.push({
+				type: 'line',
+				data: data2[i],
+				lineStyle: {
+					type: 'dotted',
+					color: color,
+					width: 1
+				}
+			});
+		}
+		var dom = document.getElementById("main");
+		var myChart = echarts.init(dom);
+		myChart.setOption(option, true);
+	}
+	
+	loadScript("https://cdn.bootcss.com/echarts/4.0.3/echarts.common.js", function () { //加载,并执行回调函数
+	  console.log("#loaded ECharts.js");
+	});
+	
+</script>

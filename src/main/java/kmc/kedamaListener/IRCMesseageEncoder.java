@@ -23,8 +23,12 @@ public class IRCMesseageEncoder extends MessageToMessageEncoder<IRCMessage> {
 	@Override
 	protected void encode(ChannelHandlerContext ctx, IRCMessage msg, List<Object> out) throws Exception {
 		StringBuilder s = msg.asString(null);
-		if(record)
-			logger.info("[<=|]{}", s.toString());
+		if(record) {
+			if(msg.getCommand().equals("PONG"))
+				logger.debug("[<=|]{}", s);
+			else
+				logger.info("[<=|]{}", s);
+		}
 		out.add(ByteBufUtil.encodeString(ctx.alloc(), CharBuffer.wrap(s.append("\r\n").toString()), charset));
 	}
 	

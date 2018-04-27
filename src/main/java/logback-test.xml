@@ -9,6 +9,9 @@
 	</appender>
 	
 	<appender name="fileLogAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">  
+			<level>INFO</level>  
+		</filter>
 		<Encoding>UTF-8</Encoding>
 		<file>logs/main.log</file>
 		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
@@ -49,7 +52,7 @@
 		<appender-ref ref="csvRecordLogAppender"></appender-ref>
 	</logger>
 	
-	<root level="info">
+	<root level="debug">
 		<appender-ref ref="stdout"></appender-ref>
 		<appender-ref ref="fileLogAppender"></appender-ref>
 	</root>

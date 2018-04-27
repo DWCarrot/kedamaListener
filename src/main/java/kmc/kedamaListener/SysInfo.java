@@ -31,14 +31,14 @@ public class SysInfo {
 					obj2 = new JsonObject();
 					obj.add(field, obj2);
 				} 
-				if(obj2.isJsonPrimitive()) {
-					obj.remove(field);
-					JsonObject t = new JsonObject();
-					t.add(field, obj2);
-					obj.add(field, t);
-					obj2 = t;
+				if(!obj2.isJsonObject()) {
+					JsonObject obj3 = new JsonObject();
+					obj3.add("", obj2);					
+					obj.add(field, obj3);
+					obj = obj3;
 				}
-				obj = (JsonObject) obj2;
+				else
+					obj = (JsonObject) obj2;
 			}
 			field = key.substring(i);
 			obj.addProperty(field, System.getProperty(key));

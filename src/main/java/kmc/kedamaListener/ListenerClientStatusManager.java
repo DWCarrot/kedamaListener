@@ -3,6 +3,8 @@ package kmc.kedamaListener;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import kmc.kedamaListener.js.settings.IRCSettings;
+
 public class ListenerClientStatusManager {
 	
 	private static ListenerClientStatusManager obj;
@@ -13,7 +15,9 @@ public class ListenerClientStatusManager {
 		return obj;
 	}
 	
-	public ListenerClientStatus status;
+	private ListenerClientStatus status;
+	
+	private int failtimes;
 	
 	private ListenerClientStatusManager() {
 		status = new ListenerClientStatus();
@@ -49,4 +53,15 @@ public class ListenerClientStatusManager {
 		status.running = Duration.between(status.start, status.current);
 		return status;
 	}
+	
+	public boolean next() {
+		if(failtimes < 0)
+			return false;
+		IRCSettings ircs = SettingsManager.getSettingsManager().getIrc();
+		if(getRunnningTime() > (ircs.normalworking + ircs.retryperiod) * 1000L)
+			failtimes = 0;
+		++failtimes;
+		return failtimes <= ircs.maxfailtime;	
+	}
+	
 }
