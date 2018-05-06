@@ -1,5 +1,6 @@
 package kmc.kedamaListener;
 
+import java.io.File;
 import java.lang.reflect.Type;
 
 import com.google.gson.GsonBuilder;
@@ -31,7 +32,7 @@ public class App {
 	
 //	public static int failTimes;
 	
-	public final static Integer version = 34;
+	public final static Integer version = 44;
 	
 	public static GsonBuilder gsonbuilder;
 	
@@ -68,12 +69,12 @@ public class App {
 		});
 	}
 	
-    public static void main( String[] args ) {  	
+    public static void main(String[] args) {
+    	System.out.println(new File(System.getProperty("user.dir")));
     	try {
         	logger = LoggerFactory.getLogger(App.class);
         	logger.info("#start @version={}", version);
         	genGsonBuilder();
-        	
 //        	Gson gson = gsonbuilder.create();
         	SettingsManager mgrs = SettingsManager.getSettingsManager("settings.json");
 //        	ListenerClientStatusManager mgr = ListenerClientStatusManager.getListenerClientStatusManager();      	
@@ -93,7 +94,9 @@ public class App {
     		Scanner input = new Scanner(System.in);
     		label1:
     		while(input.hasNext()) {
-    			switch (input.nextLine()) {
+    			String msg = input.nextLine();
+    			logger.info(msg);
+    			switch (msg) {
     			case "launcher close":
     				if(!c.isClosed()) {
     					c.close(future -> {version.notify();});

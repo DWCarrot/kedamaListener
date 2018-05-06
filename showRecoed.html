@@ -8,7 +8,8 @@
 			<button id="query" onclick="queryData()" >Query</button>
 			<input type="date" id="date1" ></input>
 			<input type="date" id="date2" ></input>
-			now<input type="checkbox" id="check" ></input>
+			now
+			<input type="checkbox" id="check" ></input>
 			<div id="loadInspector" ></div>
 			<button id="draw" onclick="draw()" >Draw</button>
 			<select id="period">
@@ -16,62 +17,54 @@
 				<option value=86400000 >daily</option>	<!1*24*60*60*1000/>				
 				<option value=604800000 >weekly</option>	<!7*24*60*60*1000/>
 			</select>
+			<input type="search" id="search"></input>
+			<div id="showInspector" ></div>
 		</div>
 		<div class="show">
 			<div id="main" style="height:400px;width: 1200px"></div>
 		</div>
 	</body>
 </html>
+<script type="text/javascript" src="https://cdn.bootcss.com/echarts/4.0.3/echarts.common.js">
+</script>
+<script type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
+</script>
 <script type="text/javascript">
 
-	function loadScript(url, callback) {
-		var script = document.createElement("script");
-		script.type = "text/javascript";
-		if(typeof(callback) != "undefined"){
-			if (script.readyState) {
-				script.onreadystatechange = function () {
-					if (script.readyState == "loaded" || script.readyState == "complete") {
-						script.onreadystatechange = null;
-						callback();
-					}
-				};
-			} else {
-				script.onload = function () {
-					callback();
-				};
-			}
-		}
-		script.src = url;
-		document.body.appendChild(script);
-	}
-	
+	var data;
+	var list;
+	var current;
+	var myChart = echarts.init(document.getElementById('main'));
+
 	function queryData() {
 		var item1 = document.getElementById("date1");
 		var item2 = document.getElementById("date2");
 		var check = document.getElementById("check");
-		var url = "https://118.25.6.33:28443/kedamaListener/PlayerCountRecord"
+//		var url = "https://118.25.6.33:28443/kedamaListener/PlayerCountRecord"
+		var url = "https://127.0.0.1:28443/kedamaListener/PlayerCountRecord"
 		var func;
 		if(check.checked) {
-			url += ("?" + "check=" + "now" + "&" + "dest=" + "current");
+			url += ("?" + "check=" + "now" + "&" + "dest=");
 			func = 3;
 		} else {
 			if(item1.value == "" && item2.value == "") {
-				url += ("?" + "list=" + "list" + "&" + "dest=" + "list")
+				url += ("?" + "list=" + "list" + "&" + "dest=")
 				func = 2;
 			} else {
-				url += ("?" + "start=" + item1.value + "&end=" + item2.value + "&" + "dest=" + "data");
+				url += ("?" + "start=" + item1.value + "&end=" + item2.value + "&" + "dest=");
 				func = 1;
 			}				
 		}
-		
 		console.log(url);
-		loadScript(url, function() {
+		$.getJSON(url + "&jsoncallback=?", function(resp) {
 			switch(func) {
 			case 1:
+				data = resp;
 				console.log("#loaded data[" + data.length + "]");
 				document.getElementById("loadInspector").innerHTML = "#loaded data[" + data.length + "] from " + url;
 				break;
 			case 2:
+				list = resp;
 				var s = '<table border="1"><tbody>';
 				s += '<tr><td>time</td><td>file</td></tr>';
 				for(var i = 0; i < list.length; ++i)
@@ -80,6 +73,7 @@
 				document.getElementById("loadInspector").innerHTML = s;
 				break;
 			case 3:
+				current = resp;
 				var s = '<table style="border: dotted;"><tbody>';
 				s += '<tr>';
 				for(var i = 0; i < current.online.length; ++i)
@@ -93,44 +87,74 @@
 	}
 	
 	var getRandomColor = function(){	
-		for(var c = Math.random()*0xffffff; ((c >>> 0) & 0xff) < 0x80 && ((c >>> 8) & 0xff) < 0x80 && ((c >>> 16) & 0xff) < 0x80;c = Math.random()*0xffffff);
-		console.log((c << 0).toString(16));
+		for(var c = Math.random()*0xffffff; ((c >>> 0) & 0xff) < 0x80 && ((c >>> 8) & 0xff) < 0x80 && ((c >>> 16) & 0xff) < 0x80;c =  Math.random()*0xffffff);
 		return '#' + (c << 0).toString(16);
 	}
 	
 	var stdDay = new Date("2007-01-01T00:00:00.000+08:00")	//Monday
 	var first;
+	var myChart;
 	
-	function mergeData(period, data) {
+	function mergeData(period, data, search) {
 		var data3 = [];
-		var data2 = [];		
+		var data2 = [];
+		var maxOnline = 0;
+		var lastContain = false;
+		var includes = function(idata, search) {
+			if(search == null)
+				return lastContain = true;
+			for(var j = 0; j < search.length; ++j)
+				if(idata.online.includes(search[j]))
+					return lastContain = true;
+			if(lastContain) {
+				lastContain = false;
+				return true;
+			} else {
+				return false;
+			}
+			
+		}
 		if(data.length > 0)
 			first = last = data[0].timestamp - (data[0].timestamp - stdDay.getTime()) % period;
-		for(var i = 0; i < data.length; ++i) {
-			if((data[i].continuous == false || data[i].timestamp - last > period) && data3.length > 0) {
+		for(var i = 0, u = false; i < data.length; ++i) {
+			if((u == true && lastContain == false ) || (data[i].continuous == false || data[i].timestamp - last > period) && data3.length > 0) {
 				data2.push(data3);
 				data3 = [];
 				last = data[i].timestamp - (data[i].timestamp - stdDay.getTime()) % period;
 			}
-			data3.push([data[i].timestamp - last, data[i].onlineNum, new Date(data[i].timestamp)]);
+			if(u = includes(data[i], search)) {
+				data3.push([(data[i].timestamp - stdDay.getTime()) % period, data[i].onlineNum, new Date(data[i].timestamp)]);
+				if(data[i].onlineNum > maxOnline)
+					maxOnline = data[i].onlineNum;
+			}
 		}
 		if(data3.length > 0)
 			data2.push(data3);
-		return data2;
+		return {
+			dataset: data2,
+			max: maxOnline
+		}
 	}
+	
+	
 	
 	var Week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 	
 	function draw() {
-		var period = document.getElementById("period");
-		console.log(period.value);
-		var data2 = [[new Date(),0]];
 		try {
-			data2 = mergeData(period.value, data);
+			data.length;
 		} catch(e) {
 			console.log(e);
+			return;
 		}
-		
+		var t1 = new Date();
+		var period = document.getElementById("period");
+		var item4 = document.getElementById("search");
+		console.log(period.value);
+		console.log(item4.value.split(','));
+		var data2s = mergeData(period.value, data, item4.value == "" ? null : item4.value.split(','));
+		var data2 = data2s.dataset;
+		var maxY = ((data2s.max + 4) / 5 << 0) * 5;
 		var option = {
 			backgroundColor: '#21202D',
 			title: {
@@ -162,7 +186,7 @@
 			xAxis: null,
 			yAxis: {
 				min: 0,
-				max: 20,
+				max: maxY,
 				scale: true,
 				axisLine: {
 					lineStyle: {
@@ -172,10 +196,22 @@
 			},
 			dataZoom: [
 				{
-					type: 'inside'
+					type: 'slider',
+					labelFormatter: null,
+					textStyle: {
+						color: '#288312'
+					}
 				}
 			],
-			series: []
+			series: {
+				type: 'line',
+				data: [],
+				lineStyle: {
+					type: 'dotted',
+					color: color,
+					width: 1
+				}
+			}
         };
 
 		switch(period.value) {
@@ -233,6 +269,8 @@
 			break;
 		}
 		
+		option.dataZoom[0].labelFormatter = option.xAxis.axisLabel.formatter;
+		
 		var isDiffPeroid = function(data2, i) {
 			if(i == 0)
 				return true;
@@ -242,6 +280,8 @@
 		}
 		
 		var color;
+		if(data2.length > 0)
+			option.series = [];
 		for(var i = 0; i < data2.length; ++i) {
 			if(period.value == Number.MAX_SAFE_INTEGER || isDiffPeroid(data2, i))
 				color = getRandomColor();
@@ -255,13 +295,12 @@
 				}
 			});
 		}
-		var dom = document.getElementById("main");
-		var myChart = echarts.init(dom);
-		myChart.setOption(option, true);
-	}
-	
-	loadScript("https://cdn.bootcss.com/echarts/4.0.3/echarts.common.js", function () { //加载,并执行回调函数
-	  console.log("#loaded ECharts.js");
-	});
-	
+		console.log("prepared; delay=" + (new Date() - t1));
+		if(data2.length > 0) {
+			myChart.setOption(option, true);
+			document.getElementById("showInspector").innerHTML = '';
+		} else {
+			document.getElementById("showInspector").innerHTML = '<div style="background-color: rebeccapurple;" >no record</div>';
+		}
+	}	
 </script>

@@ -1,11 +1,7 @@
 package kmc.kedamaListener;
 
-import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeoutException;
-
-import javax.net.ssl.SSLEngine;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.slf4j.Logger;
 
@@ -22,12 +18,8 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.ssl.SslContext;
-import io.netty.handler.ssl.SslContextBuilder;
-import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import kmc.kedamaListener.js.settings.SSLSettings;
 import kmc.kedamaListener.js.settings.Settings;
 import kmc.kedamaListener.ClientSslContextFactory;
 
@@ -51,15 +43,18 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 	
 	int failedTimes;
 	
-	LastChannelHandle lastHandle;
+	ChannelPipeline p;
 	
 	Thread waiting;
+	
+	boolean notLoginError;
+	
+	IRCListenerHandler l;
 	
 	public ListenerClient() {
 		settings = SettingsManager.getSettingsManager().getSettings();
 		statusMgr = ListenerClientStatusManager.getListenerClientStatusManager();
 		failedTimes = 0;
-		lastHandle = new LastChannelHandle();
 		wdt = new WatchDogTimer(settings.irc.msgtimeout * 1000, this);
 		waiting = null;
 	}
@@ -73,7 +68,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 		 .handler(new ChannelInitializer<SocketChannel>() {
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
-				ChannelPipeline p = ch.pipeline();
+				p = ch.pipeline();
 				if(ClientSslContextFactory.getClientContext(null) != null) {
 					SslContext sslctx = ClientSslContextFactory.getClientContext(null);
 			        p.addLast("ssl", sslctx.newHandler(ch.alloc()));
@@ -82,9 +77,9 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 				 .addLast("in2", new IRCMessageDecoder().setWatchDogTimer(wdt))
 				 .addLast("out1", new IRCMesseageEncoder())
 				 .addLast("in3", new IRCLoginHandle())
-				 .addLast("in4", new IRCListenerHandler())
+				 .addLast("in4", l = new IRCListenerHandler())
 				 .addLast("in5", new IRCResponseHandle())
-				 .addLast("end", lastHandle = new LastChannelHandle());
+				 .addLast("end", new LastChannelHandle());
 			}			 		
 		  });
 	}
@@ -96,6 +91,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 		future = future.channel().closeFuture();
 		future.addListener(this);
 		wdt.start();
+		notLoginError = false;
 	}
 
 	@Override
@@ -107,7 +103,10 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 		if(group != null && statusMgr.next() && !(group.isShuttingDown() || group.isShutdown() || group.isTerminated())) {		
 			try {
 				waiting = Thread.currentThread();
-				Thread.sleep(SettingsManager.getSettingsManager().getIrc().retryperiod * 1000L);
+				if(notLoginError)
+					Thread.sleep(10 * 1000L);
+				else 
+					Thread.sleep(SettingsManager.getSettingsManager().getIrc().retryperiod * 1000L);
 				waiting = null;
 				start();
 				statusMgr.addClientRestart();
@@ -150,7 +149,9 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 					Thread.currentThread(),
 					new TimeoutException("haven't received any message over " + settings.irc.msgtimeout + "s")
 					);
-		lastHandle.getContext().close();
+		notLoginError = true;
+		l.stopPing();
+		p.close().addListener(CLOSE);
 	}
 
 	@Override

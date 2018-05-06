@@ -42,6 +42,22 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 		t.start();
 	}
 	
+	public void stopPing() {
+		try {
+			if(ping != null) {
+				ping.close();
+				ping = null;
+			}
+			if(t != null) {
+				t.interrupt();
+				t = null;
+			}
+			logger.info("#process: pinger closed");
+		} catch (Exception e) {
+			logger.warn("#Exception @{}", Thread.currentThread(), e);
+		}
+	}
+	
 	public String getPlayer(String trailing) {
 		int i = trailing.indexOf(' ', 0);
 		int j = trailing.indexOf(' ', i + 1);
@@ -95,16 +111,9 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 	
 	@Override
 	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-		try {
-			if(ping != null)
-				ping.close();
-			if(t != null)
-				t.interrupt();
-			logger.warn("#process: pinger closed");
-			super.channelInactive(ctx);
-		} catch (Exception e) {
-			logger.warn("#Exception @{}", Thread.currentThread(), e);
-		}
+		if(ping != null || t != null)
+			stopPing();
+		super.channelInactive(ctx);
 	}
 	
 	@Override
@@ -113,6 +122,7 @@ public class IRCListenerHandler extends ChannelInboundHandlerAdapter {
 //		super.exceptionCaught(ctx, cause);
 	}
 
+	
 }
 
 

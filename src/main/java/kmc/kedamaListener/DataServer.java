@@ -37,8 +37,6 @@ public class DataServer {
 	
 	private List<String> indexs;
 	
-	private LastHttpChannelHandle lastHttpChannelHandle;
-	
 	public DataServer(String host, int port, List<String> indexs) {
 		localAddress = new InetSocketAddress(host, port);
 		this.indexs = indexs;
@@ -76,7 +74,7 @@ public class DataServer {
 				p.addLast("compressor", new HttpContentCompressor());
 				p.addLast("chunked", new ChunkedWriteHandler());
 				p.addLast("handle_1", new HttpQueryHandle());
-				p.addLast("last", lastHttpChannelHandle = new LastHttpChannelHandle());
+				p.addLast("last", new LastHttpChannelHandle());
 			}
 		});
 	}

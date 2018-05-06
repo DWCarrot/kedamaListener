@@ -53,8 +53,11 @@ public class GetJsonRecord implements ChunkedInput<HttpContent> {
 	private FileInputStream infile;
 	private int status;
 	
-	private byte[] head = {'d', 'a', 't', 'a', '=', '['};
+	private byte[] head = {'['};
 	private byte[] tail = {']'};
+	
+	private static byte[] ohead = {'['};
+	private static byte[] otail = {']'};
 	
 	public GetJsonRecord(String mainName, String rollingNamePattern) {
 		int i = rollingNamePattern.lastIndexOf('/');
@@ -119,15 +122,18 @@ public class GetJsonRecord implements ChunkedInput<HttpContent> {
 		status = 4;
 	}
 	
-	public void setValueName(String valueName) {
-		if(valueName.isEmpty() || valueName.length() + 16 > chunksize)
-			head = new byte[]{'['};
+	public void setCallback(String callback) {
+		if(callback == null || callback.isEmpty() || callback.length() + 16 > chunksize) {
+			head = ohead;
+			tail = otail;
+		}
 		else {
-			byte[] v = valueName.getBytes(charset);
+			byte[] v = callback.getBytes(charset);
 			head = new byte[v.length + 2];
 			System.arraycopy(v, 0, head, 0, v.length);
-			head[v.length] = '=';
-			head[v.length + 1] = '{';
+			head[v.length + 0] = '(';
+			head[v.length + 1] = '[';
+			tail = new byte[] {']', ')'};
 		}
 	}
 	
