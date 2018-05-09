@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 
 import io.netty.channel.ChannelHandlerContext;
@@ -19,17 +21,19 @@ public class IRCResponseHandle extends ChannelInboundHandlerAdapter {
 	
 	private Gson gson = App.gsonbuilder.create();
 	
-	private Logger logger = App.logger;
+	private Logger logger = LoggerFactory.getLogger(IRCResponseHandle.class);
 	
 	public IRCResponseHandle() {
 		head = new StringBuilder()
 				.append('@')
-				.append(SettingsManager.getSettingsManager().getIrc().basic.nick)
 				.append(' ')
-				.append(SettingsManager.getSettingsManager().getIrc().listener.excute1)
+				.append(ListenerClient.settings.irc.basic.nick)
+				.append(' ')
+				.append(ListenerClient.settings.irc.listener.excute1)
 				.append(' ')
 				.toString();
 		pw = new OffPassword();
+		SysInfo.setKeys(ListenerClient.settings.sysinfo);
 	}
 	
 	@Override
@@ -82,7 +86,7 @@ public class IRCResponseHandle extends ChannelInboundHandlerAdapter {
 			case "-public":
 				if((level & 0x2) != 0)
 					break;
-				send.setMiddles(0, SettingsManager.getSettingsManager().getIrc().basic.channel);
+				send.setMiddles(0, ListenerClient.settings.irc.basic.channel);
 				break;
 			case "-ping":
 				if((level & 0x1) != 0)
@@ -131,27 +135,27 @@ public class IRCResponseHandle extends ChannelInboundHandlerAdapter {
 				send.setTrailing(s.toString());
 				level |= 0x1;
 				break;
-//			case "-off":
-//				if((level & 0x1) != 0)
-//					break;
-//				if(pw.hasPw()) {
-//					if(pw.check(args.get(i++))) {
-//						send.getMiddles().clear();
-//						send.setCommand("QUIT");
-//						level |= 0x7;
-//						App.failTimes = -1;
-//						logger.info("#process :remoted to close");
-//					} else {
-//						send.setMiddles(0, msg.getUser().getNick())
-//							.setTrailing("Incorrect Password");
-//						level |= 0x3;
-//					}
-//				} else {
-//					send.setMiddles(0, msg.getUser().getNick())
-//						.setTrailing(pw.genOffPw());
-//					level |= 0x3;
-//				}
-//				break;
+			case "-off":
+				if((level & 0x1) != 0)
+					break;
+				if(pw.hasPw()) {
+					if(pw.check(args.get(i++))) {
+						send.getMiddles().clear();
+						send.setCommand("QUIT");
+						level |= 0x7;
+						ListenerClientStatusManager.getListenerClientStatusManager().failtimes = -1;
+						logger.info("#process :remoted to close");
+					} else {
+						send.setMiddles(0, msg.getUser().getNick())
+							.setTrailing("Incorrect Password");
+						level |= 0x3;
+					}
+				} else {
+					send.setMiddles(0, msg.getUser().getNick())
+						.setTrailing(pw.genOffPw());
+					level |= 0x3;
+				}
+				break;
 			default:
 				break;
 			}

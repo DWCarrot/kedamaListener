@@ -1,5 +1,6 @@
 package kmc.kedamaListener;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.JsonElement;
@@ -7,10 +8,14 @@ import com.google.gson.JsonObject;
 
 public class SysInfo {
 
-	private static List<String> keys = SettingsManager.getSettingsManager().getSettings().sysinfo;
+	private static List<String> keys = new ArrayList<>();
 	
 	private static JsonObject info;
 	
+	public static void setKeys(List<String> keys) {
+		SysInfo.keys = keys;
+	}
+
 	public static JsonObject getSysInfo() {
 		if(info == null)
 			info = get();

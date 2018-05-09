@@ -32,7 +32,7 @@ public class App {
 	
 //	public static int failTimes;
 	
-	public final static Integer version = 44;
+	public final static Integer version = 46;
 	
 	public static GsonBuilder gsonbuilder;
 	
@@ -70,26 +70,22 @@ public class App {
 	}
 	
     public static void main(String[] args) {
-    	System.out.println(new File(System.getProperty("user.dir")));
+    	System.out.println(System.getProperty("user.dir"));
+    	System.out.println(System.getProperty("java.class.path"));
     	try {
         	logger = LoggerFactory.getLogger(App.class);
         	logger.info("#start @version={}", version);
         	genGsonBuilder();
 //        	Gson gson = gsonbuilder.create();
-        	SettingsManager mgrs = SettingsManager.getSettingsManager("settings.json");
 //        	ListenerClientStatusManager mgr = ListenerClientStatusManager.getListenerClientStatusManager();      	
-        	
-        	ServerSslContextFactory.getServerContext(mgrs.getSettings().dataserver.ssl);
-    		ClientSslContextFactory.getClientContext(mgrs.getIrc().host.ssl);    		
+        			
 //    		IRCSettings ircs = mgrs.getIrc();	
     		
     		logger.info("#process initialized");
     		
     		ListenerClient c = new ListenerClient();
     		
-    		DataServer s = new DataServer(mgrs.getSettings().dataserver.host ,mgrs.getSettings().dataserver.port, mgrs.getSettings().dataserver.indexs)
-    							.setDataFileLocate(mgrs.getSettings().filesave)
-    							.setPage404(mgrs.getSettings().dataserver.page404);
+    		DataServer s = new DataServer();
     		
     		Scanner input = new Scanner(System.in);
     		label1:
@@ -119,7 +115,7 @@ public class App {
 			    		c.start();
 					}
 					break;
-				case "client close":
+				case "client stop":
 					if(!c.isClosed()) {
 						c.close(future -> {version.notify();});
 						synchronized (version) {
@@ -134,7 +130,7 @@ public class App {
 						s.start();
 					}
 					break;
-				case "server close":
+				case "server stop":
 					if(!s.isClosed()) {
 						s.close(future -> {version.notify();});
 						synchronized (version) {

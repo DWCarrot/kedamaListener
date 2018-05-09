@@ -3,6 +3,7 @@ package kmc.kedamaListener;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +19,7 @@ import kmc.kedamaListener.js.mcpingreply.MCPCPingReply;
 
 public class MCPCPing implements Runnable {
 	
-	Logger logger = App.logger;
+	Logger logger = LoggerFactory.getLogger(MCPCPing.class);
 	Gson gson = App.gsonbuilder.create();
 	
 	

@@ -17,7 +17,7 @@ public class ListenerClientStatusManager {
 	
 	private ListenerClientStatus status;
 	
-	private int failtimes;
+	public int failtimes;
 	
 	private ListenerClientStatusManager() {
 		status = new ListenerClientStatus();
@@ -57,11 +57,14 @@ public class ListenerClientStatusManager {
 	public boolean next() {
 		if(failtimes < 0)
 			return false;
-		IRCSettings ircs = SettingsManager.getSettingsManager().getIrc();
+		IRCSettings ircs = ListenerClient.settings.irc;
 		if(getRunnningTime() > (ircs.normalworking + ircs.retryperiod) * 1000L)
 			failtimes = 0;
 		++failtimes;
 		return failtimes <= ircs.maxfailtime;	
 	}
-	
+
+	public void allowRestart() {
+		failtimes = 0;
+	}
 }

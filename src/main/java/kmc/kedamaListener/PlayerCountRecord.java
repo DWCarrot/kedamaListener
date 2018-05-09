@@ -2,6 +2,7 @@ package kmc.kedamaListener;
 
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import kmc.kedamaListener.PlayerCount;
@@ -10,7 +11,7 @@ public class PlayerCountRecord {
 
 	private Gson gson = App.gsonbuilder.create();
 	
-	private Logger logger = App.logger;
+	private Logger logger = LoggerFactory.getLogger(PlayerCountRecord.class);
 	
 	private PlayerCount plc;
 	

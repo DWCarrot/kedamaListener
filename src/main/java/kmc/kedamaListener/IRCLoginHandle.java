@@ -3,6 +3,7 @@ package kmc.kedamaListener;
 import java.time.Instant;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -13,11 +14,11 @@ public class IRCLoginHandle extends ChannelInboundHandlerAdapter {
 	private int state;
 	private IRCBasicSettings settings;
 	
-	private Logger logger = App.logger;
+	private Logger logger = LoggerFactory.getLogger(IRCListenerHandler.class);
 	
 	public IRCLoginHandle() {
 		state = 0;
-		this.settings = SettingsManager.getSettingsManager().getIrc().basic;
+		this.settings = ListenerClient.settings.irc.basic;
 	}
 	
 	@Override

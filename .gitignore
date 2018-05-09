@@ -26,3 +26,4 @@ settings.json
 .project
 .classpath
 picture/
+*/data*.tar.gz

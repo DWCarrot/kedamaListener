@@ -4,6 +4,8 @@ import java.util.List;
 
 public class DataServerSettings {
 	
+	public FileSave filesave;
+	
 	public String host;
 	
 	public int port;

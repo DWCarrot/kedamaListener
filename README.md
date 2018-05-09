@@ -83,4 +83,6 @@ json记录增加 continuous项判断是否连续
 >`callback([{...},{...},{...},...])`
 >
 
-
+### 2018/05/09
+初步分离 ListenerClient模块 和 DataServer模块 
+粗制数据分析网页

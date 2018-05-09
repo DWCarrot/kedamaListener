@@ -1,5 +1,6 @@
 package kmc.kedamaListener;
 
+import java.io.FileInputStream;
 import java.security.KeyStore;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.TrustManagerFactory;
@@ -28,7 +29,7 @@ public class ClientSslContextFactory {
 		        	if(settings.keystoretype == null || settings.keystoretype.equals("=default"))
 		        		settings.keystoretype = KeyStore.getDefaultType();
 		        	KeyStore ks2 = KeyStore.getInstance(settings.keystoretype);
-		        	ks2.load(App.class.getResourceAsStream("/" + settings.keystore), settings.keystorepw.toCharArray());		            
+		        	ks2.load(new FileInputStream(settings.keystore), settings.keystorepw.toCharArray());		            
 		            kmf2 = KeyManagerFactory.getInstance(algorithm);
 		        	kmf2.init(ks2, settings.keystorepw.toCharArray());
 	        	}
@@ -37,7 +38,7 @@ public class ClientSslContextFactory {
 		        	if(settings.trustkeystoretype == null || settings.trustkeystoretype.equals("=default"))
 		        		settings.trustkeystoretype = KeyStore.getDefaultType();
 		        	KeyStore tks2 = KeyStore.getInstance(settings.trustkeystoretype);
-			        tks2.load(App.class.getResourceAsStream("/" + settings.trustkeystore), settings.trustkeystorepw.toCharArray());
+			        tks2.load(new FileInputStream(settings.trustkeystore), settings.trustkeystorepw.toCharArray());
 		            tmf2 = TrustManagerFactory.getInstance(algorithm);
 		            tmf2.init(tks2);
 	        	}
@@ -50,4 +51,7 @@ public class ClientSslContextFactory {
         return clientContext;
     }
 
+	public static void clear() {
+		clientContext = null;
+	}
 }

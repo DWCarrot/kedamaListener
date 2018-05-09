@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" >
+		<meta http-equiv="X-UA-Compatible" content="IE=9;IE=8;IE=7;IE=EDGE;" >
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>query</title>
+		<link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+	</head>
+	<body>
+		<div class="control">
+			<div class="form-group">
+				<button id="query" class="btn btn-primary input-sm">Query</button>
+				<input type="date" id="date1" class="form-inline input-sm"></input>
+				<input type="date" id="date2" class="form-inline input-sm"></input>
+				<input type="checkbox" id="check" class="form-inline input-sm" >now</input>
+				<div id="loadInspector" ></div>
+			</div>
+			<div class="form-group">
+				<button id="draw" class="btn btn-primary input-sm">Draw</button>
+				<select id="period" class="form-inline input-sm">
+					<option value=9007199254740991>plain</option>	<!Number.MAX_SAFE_INTEGER/>
+					<option value=86400000>daily</option>	<!1*24*60*60*1000/>				
+					<option value=604800000>weekly</option>	<!7*24*60*60*1000/>
+				</select>
+				<input type="search" id="search" class="form-inline input-sm"></input>
+				<div id="showInspector" ></div>
+			</div>
+		</div>
+		<div class="show">
+			<div id="main" style="height:400px;width: 1200px"></div>
+		</div>
+	</body>
+</html>
+<script type="text/javascript" src="https://cdn.bootcss.com/jquery/2.1.1/jquery.min.js" ></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js" ></script>
+<script type="text/javascript" src="https://cdn.bootcss.com/echarts/4.0.3/echarts.common.js" ></script>
+<script type="text/javascript" src="showRecord.js" ></script>

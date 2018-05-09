@@ -5,6 +5,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.ByteBufUtil;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,7 +19,7 @@ public class IRCMesseageEncoder extends MessageToMessageEncoder<IRCMessage> {
 	
 	private boolean record = true;
 	
-	private Logger logger = App.logger;
+	private Logger logger = LoggerFactory.getLogger(IRCMesseageEncoder.class);
 	
 	@Override
 	protected void encode(ChannelHandlerContext ctx, IRCMessage msg, List<Object> out) throws Exception {

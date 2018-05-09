@@ -1,90 +1,72 @@
-<html>
-	<head>
-		<meta charset="utf-8">
-		<title>query</title>
-	</head>
-	<body>
-		<div class="control">
-			<button id="query" onclick="queryData()" >Query</button>
-			<input type="date" id="date1" ></input>
-			<input type="date" id="date2" ></input>
-			now
-			<input type="checkbox" id="check" ></input>
-			<div id="loadInspector" ></div>
-			<button id="draw" onclick="draw()" >Draw</button>
-			<select id="period">
-				<option value=9007199254740991 >plain</option>	<!Number.MAX_SAFE_INTEGER/>
-				<option value=86400000 >daily</option>	<!1*24*60*60*1000/>				
-				<option value=604800000 >weekly</option>	<!7*24*60*60*1000/>
-			</select>
-			<input type="search" id="search"></input>
-			<div id="showInspector" ></div>
-		</div>
-		<div class="show">
-			<div id="main" style="height:400px;width: 1200px"></div>
-		</div>
-	</body>
-</html>
-<script type="text/javascript" src="https://cdn.bootcss.com/echarts/4.0.3/echarts.common.js">
-</script>
-<script type="text/javascript" src="https://apps.bdimg.com/libs/jquery/2.1.4/jquery.min.js">
-</script>
-<script type="text/javascript">
-
+$(document).ready(function() {
 	var data;
 	var list;
 	var current;
-	var myChart = echarts.init(document.getElementById('main'));
+	var myChart = echarts.init($("#main")[0]);
 
-	function queryData() {
-		var item1 = document.getElementById("date1");
-		var item2 = document.getElementById("date2");
-		var check = document.getElementById("check");
-//		var url = "https://118.25.6.33:28443/kedamaListener/PlayerCountRecord"
-		var url = "https://127.0.0.1:28443/kedamaListener/PlayerCountRecord"
+	$("#query").click(function () {
+		var item1 = $("#date1")[0];
+		var item2 = $("#date2")[0];
+		var check = $("#check")[0];
+		var url = "https://118.25.6.33:28443/kedamaListener/PlayerCountRecord"
+//		var url = "https://127.0.0.1:28443/kedamaListener/PlayerCountRecord"
 		var func;
 		if(check.checked) {
-			url += ("?" + "check=" + "now" + "&" + "dest=");
+			url += ("?" + "check=" + "now");
 			func = 3;
 		} else {
 			if(item1.value == "" && item2.value == "") {
-				url += ("?" + "list=" + "list" + "&" + "dest=")
+				url += ("?" + "list=" + "list")
 				func = 2;
 			} else {
-				url += ("?" + "start=" + item1.value + "&end=" + item2.value + "&" + "dest=");
+				url += ("?" + "start=" + item1.value + "&end=" + item2.value);
 				func = 1;
 			}				
 		}
-		console.log(url);
-		$.getJSON(url + "&jsoncallback=?", function(resp) {
-			switch(func) {
-			case 1:
-				data = resp;
-				console.log("#loaded data[" + data.length + "]");
-				document.getElementById("loadInspector").innerHTML = "#loaded data[" + data.length + "] from " + url;
-				break;
-			case 2:
-				list = resp;
-				var s = '<table border="1"><tbody>';
-				s += '<tr><td>time</td><td>file</td></tr>';
-				for(var i = 0; i < list.length; ++i)
-					s += ('<tr><td>' + list[i].time + '</td><td>' + list[i].file + '</td></tr>');
-				s += '</tbody></table>';
-				document.getElementById("loadInspector").innerHTML = s;
-				break;
-			case 3:
-				current = resp;
-				var s = '<table style="border: dotted;"><tbody>';
-				s += '<tr>';
-				for(var i = 0; i < current.online.length; ++i)
-					s += ('<td style="width:125px;">' + current.online[i] + '</td>');
-				s += '</tr>';
-				s += '</tbody></table>';
-				document.getElementById("loadInspector").innerHTML = s;
-				break;
+		
+		$.ajax({
+			type: "get",
+			url: url,
+			async:false,
+			dataType: "jsonp",
+			jsonp: "jsoncallback",
+			cache: false,
+			beforeSend: function() {
+				console.log(this.url);
+			},
+			success: function(resp, textStatus) {
+				switch(func) {
+				case 1:
+					data = resp;
+					console.log("#loaded data[" + data.length + "]");
+					$("#loadInspector").html("#loaded data[" + data.length + "] from " + url);
+					break;
+				case 2:
+					list = resp;
+					var s = '<table border="1"><tbody>';
+					s += '<tr><td>time</td><td>file</td></tr>';
+					for(var i = 0; i < list.length; ++i)
+						s += ('<tr><td>' + list[i].time + '</td><td>' + list[i].file + '</td></tr>');
+					s += '</tbody></table>';
+					$("#loadInspector").html(s);
+					break;
+				case 3:
+					current = resp;
+					var s = '<table style="border: dotted;"><tbody>';
+					s += '<tr>';
+					for(var i = 0; i < current.online.length; ++i)
+						s += ('<td style="width:125px;">' + current.online[i] + '</td>');
+					s += '</tr>';
+					s += '</tbody></table>';
+					$("#loadInspector").html(s);
+					break;
+				}
+			},
+			error: function(XMLHttpRequest, textStatus, errorThrown) {
+				$("#loadInspector").html("<p>Error: " + textStatus + "</p>" + "<a href=" + '"' + url + '"' + " >download</a>");
 			}
 		});
-	}
+	});
 	
 	var getRandomColor = function(){	
 		for(var c = Math.random()*0xffffff; ((c >>> 0) & 0xff) < 0x80 && ((c >>> 8) & 0xff) < 0x80 && ((c >>> 16) & 0xff) < 0x80;c =  Math.random()*0xffffff);
@@ -140,7 +122,7 @@
 	
 	var Week = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 	
-	function draw() {
+	$("#draw").click(function draw() {
 		try {
 			data.length;
 		} catch(e) {
@@ -148,8 +130,8 @@
 			return;
 		}
 		var t1 = new Date();
-		var period = document.getElementById("period");
-		var item4 = document.getElementById("search");
+		var period = $("#period")[0];
+		var item4 = $("#search")[0];
 		console.log(period.value);
 		console.log(item4.value.split(','));
 		var data2s = mergeData(period.value, data, item4.value == "" ? null : item4.value.split(','));
@@ -298,9 +280,9 @@
 		console.log("prepared; delay=" + (new Date() - t1));
 		if(data2.length > 0) {
 			myChart.setOption(option, true);
-			document.getElementById("showInspector").innerHTML = '';
+			$("#showInspector").html();
 		} else {
-			document.getElementById("showInspector").innerHTML = '<div style="background-color: rebeccapurple;" >no record</div>';
+			$("#showInspector").html('<div style="background-color: rebeccapurple;" >no record</div>');
 		}
-	}	
-</script>
+	})
+})

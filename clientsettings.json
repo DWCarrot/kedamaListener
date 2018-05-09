@@ -1,0 +1,56 @@
+{
+	"irc": {
+		"host": {
+			"hostname": "chat.freenode.net",
+			"port": 7000,
+			"ssl": {
+				"trustkeystore": ~~,
+				"trustkeystoretype": ~~,
+				"trustkeystorepw": ~~
+			}
+		},
+		"basic": {
+			"nick": ~~,
+			"username": ~~,
+			"realname": ~~,
+			"usermode": 8,
+			"password": ~~,
+			"email": ~~,
+			"channel": ~~
+		},
+		"listener": {
+			"target": "kedamabot",
+			"joinkey": "加入了游戏",
+			"leavekey": "离开了游戏",
+			"excute1": "respmkf"
+		},
+		"msgtimeout": 20,
+		"retryperiod": 300,
+		"normalworking": 900,
+		"maxfailtime": 3
+	},
+	"mcping": {
+		"server": {
+			"hostname": ~~,
+			"port": ~~,
+			"protocolversion": ~~
+		},
+		"normalperiod": 10800,
+		"retryperiod": 20,
+		"maxfailtime": 10
+	},
+	"sysinfo": [
+			"os.name",
+			"os.version",
+			"os.arch",
+			"java.version",
+			"java.vendor",
+			"java.vendor.url",
+			"java.compiler",
+			"java.class.version",
+			"java.vm.name",
+			"java.vm.version",
+			"java.vm.vendor",
+			"file.encoding",
+	]
+}

@@ -162,11 +162,11 @@ public class HttpQueryHandle extends ChannelInboundHandlerAdapter {
 				b = queryPara.get("jsoncallback");
 				handle2(ctx, start, end, b);
 			} else {
-				if ((a = queryPara.get("list")).equals("list")) {
+				if ((a = queryPara.get("list")) != null && a.equals("list")) {
 					b = queryPara.get("jsoncallback");
 					handle1(ctx, b);
 				} else {
-					if((a = queryPara.get("check")).equals("now")) {
+					if((a = queryPara.get("check")) != null && a.equals("now")) {
 						b = queryPara.get("jsoncallback");
 						handle3(ctx, b);
 					}
@@ -215,9 +215,9 @@ public class HttpQueryHandle extends ChannelInboundHandlerAdapter {
 		HttpHeaders h = response.headers();
 		h.add(HttpHeaderNames.DATE, LocalDateTime.now());
 		if(hasCallback)
-			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-		else
 			h.add(HttpHeaderNames.CONTENT_TYPE, "text/javascript");
+		else
+			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
 //		h.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, ctx.channel().localAddress());
 		ctx.write(response);
 		ctx.flush();
@@ -229,9 +229,9 @@ public class HttpQueryHandle extends ChannelInboundHandlerAdapter {
 		HttpHeaders h = response.headers();
 		h.add(HttpHeaderNames.DATE, LocalDateTime.now());
 		if(hasCallback)
-			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-		else
 			h.add(HttpHeaderNames.CONTENT_TYPE, "text/javascript");
+		else
+			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
 		h.add(HttpHeaderNames.TRANSFER_ENCODING, HttpHeaderValues.CHUNKED);
 //		h.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, ctx.channel().localAddress());
 //		String compress = req.headers().get(HttpHeaderNames.ACCEPT_ENCODING);	
@@ -262,9 +262,9 @@ public class HttpQueryHandle extends ChannelInboundHandlerAdapter {
 		HttpHeaders h = response.headers();
 		h.add(HttpHeaderNames.DATE, LocalDateTime.now());
 		if(hasCallback)
-			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
-		else
 			h.add(HttpHeaderNames.CONTENT_TYPE, "text/javascript");
+		else
+			h.add(HttpHeaderNames.CONTENT_TYPE, HttpHeaderValues.APPLICATION_JSON);
 //		h.add(HttpHeaderNames.ACCESS_CONTROL_ALLOW_ORIGIN, ctx.channel().localAddress());
 		ctx.write(response);
 		ctx.flush();

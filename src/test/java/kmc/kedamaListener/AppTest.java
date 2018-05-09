@@ -8,6 +8,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Scanner;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
 
 import io.netty.buffer.ByteBuf;
@@ -106,6 +109,11 @@ public class AppTest
 //				break;
 //		}
 //    	input.close();
+    	
+    	Logger logger = LoggerFactory.getLogger(this.getClass());
+    	File file = new File("clientsettings.json");
+    	System.out.println(file.getAbsolutePath());
+    	logger.error("clientsettings.json: {}", file.isFile());
     	
         assertTrue( true );
     }

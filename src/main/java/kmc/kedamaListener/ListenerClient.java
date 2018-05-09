@@ -1,11 +1,17 @@
 package kmc.kedamaListener;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.net.InetSocketAddress;
 import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.stream.JsonReader;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -20,14 +26,14 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.ssl.SslContext;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
-import kmc.kedamaListener.js.settings.Settings;
+import kmc.kedamaListener.js.settings.ClientSettings;
 import kmc.kedamaListener.ClientSslContextFactory;
 
 public class ListenerClient implements ChannelFutureListener, WatchDogTimer.WorkingProcess {
 	
-	InetSocketAddress ircAddr;
+	public static ClientSettings settings;
 	
-	Settings settings;
+	InetSocketAddress ircAddr;
 	
 	ListenerClientStatusManager statusMgr;
 	
@@ -35,13 +41,11 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 	
 	Bootstrap b;
 	
-	Logger logger = App.logger;
+	Logger logger = LoggerFactory.getLogger(ListenerClient.class);
 	
 	Gson gson = App.gsonbuilder.create();
 	
 	WatchDogTimer wdt;
-	
-	int failedTimes;
 	
 	ChannelPipeline p;
 	
@@ -51,15 +55,30 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 	
 	IRCListenerHandler l;
 	
+	SslContext sslctx;
+	
+//	public ListenerClient() {
+//		settings = SettingsManager.getSettingsManager().getSettings();
+//		
+//		
+//	}
+	
 	public ListenerClient() {
-		settings = SettingsManager.getSettingsManager().getSettings();
+		
+	}
+
+	public void init() throws JsonIOException, JsonSyntaxException, FileNotFoundException {
+		
+		FileReader infile = new FileReader("clientsettings.json");
+		settings = gson.fromJson(new JsonReader(infile), ClientSettings.class);
+		
 		statusMgr = ListenerClientStatusManager.getListenerClientStatusManager();
-		failedTimes = 0;
+		statusMgr.allowRestart();
 		wdt = new WatchDogTimer(settings.irc.msgtimeout * 1000, this);
 		waiting = null;
-	}
-	
-	public void init() {
+		
+		sslctx = ClientSslContextFactory.getClientContext(settings.irc.host.ssl);
+		
 		group = new NioEventLoopGroup(2);
 		b = new Bootstrap();
 		b.group(group)
@@ -69,8 +88,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 			@Override
 			protected void initChannel(SocketChannel ch) throws Exception {
 				p = ch.pipeline();
-				if(ClientSslContextFactory.getClientContext(null) != null) {
-					SslContext sslctx = ClientSslContextFactory.getClientContext(null);
+				if(sslctx != null) {
 			        p.addLast("ssl", sslctx.newHandler(ch.alloc()));
 				}
 				p.addLast("in1", new LineBasedFrameDecoder(1024))
@@ -106,7 +124,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 				if(notLoginError)
 					Thread.sleep(10 * 1000L);
 				else 
-					Thread.sleep(SettingsManager.getSettingsManager().getIrc().retryperiod * 1000L);
+					Thread.sleep(settings.irc.retryperiod * 1000L);
 				waiting = null;
 				start();
 				statusMgr.addClientRestart();
@@ -121,6 +139,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 		logger.info("#state {}" ,gson.toJson(statusMgr.getListenerClientStatus()));
 		group.shutdownGracefully().addListener(_future -> {logger.info("#processs :IRCListener terminated");});
 		group = null;
+		ClientSslContextFactory.clear();
 	}
 	
 	public boolean isClosed() {
@@ -140,6 +159,7 @@ public class ListenerClient implements ChannelFutureListener, WatchDogTimer.Work
 			logger.info("#state {}" ,gson.toJson(statusMgr.getListenerClientStatus()));
 			group.shutdownGracefully().addListener(futureListener);
 			group = null;
+			ClientSslContextFactory.clear();
 		}
 	}
 

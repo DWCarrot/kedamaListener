@@ -4,6 +4,7 @@ import java.nio.charset.Charset;
 import java.util.List;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
@@ -17,7 +18,7 @@ public class IRCMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
 	
 	private boolean record = true;
 	
-	private Logger logger = App.logger;
+	private Logger logger = LoggerFactory.getLogger(IRCMessageDecoder.class);
 	
 	private WatchDogTimer wdt;
 	
