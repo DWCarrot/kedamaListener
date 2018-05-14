@@ -1,4 +1,4 @@
-{
+﻿{
 	"filesave": {
 		"main": "jsonRecord/record.json",
 		"rolling": "jsonRecord/record-%d{yyyy-MM-dd}.json"
@@ -8,7 +8,7 @@
 	"ssl": {
 		"keystore": "kedamaListener.keystore",
 		"keystoretype": "PKCS12",
-		"keystorepw": ~~
+		"keystorepw": "74HC4046sslc"
 	},
 	"indexs": [
 		"/kedamaListener/PlayerCountRecord",

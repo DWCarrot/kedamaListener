@@ -1,22 +1,22 @@
-{
+﻿{
 	"irc": {
 		"host": {
 			"hostname": "chat.freenode.net",
 			"port": 7000,
 			"ssl": {
-				"trustkeystore": ~~,
-				"trustkeystoretype": ~~,
-				"trustkeystorepw": ~~
+				"trustkeystore": "cacerts.keystore",
+				"trustkeystoretype": "=default",
+				"trustkeystorepw": "74HC4046sslt"
 			}
 		},
 		"basic": {
-			"nick": ~~,
-			"username": ~~,
-			"realname": ~~,
+			"nick": "D_W_Carrot",
+			"username": "IRCListenerBot",
+			"realname": "D_W_Carrot",
 			"usermode": 8,
-			"password": ~~,
-			"email": ~~,
-			"channel": ~~
+			"password": "19970706irc",
+			"email": "yyt226univ2017@yahoo.com",
+			"channel": "#kedama_test2"
 		},
 		"listener": {
 			"target": "kedamabot",
@@ -31,9 +31,9 @@
 	},
 	"mcping": {
 		"server": {
-			"hostname": ~~,
-			"port": ~~,
-			"protocolversion": ~~
+			"hostname": "gateway.craft.moe",
+			"port": 25565,
+			"protocolversion": 335
 		},
 		"normalperiod": 10800,
 		"retryperiod": 20,
